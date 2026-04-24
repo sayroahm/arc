@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portal</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background-color: #d3d3d3;
@@ -21,6 +17,156 @@
       -webkit-user-select: none;
     }
 
+    /* ─── ENTRY GATE ─── */
+    #entry-gate {
+      position: fixed;
+      inset: 0;
+      background: #d3d3d3;
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .gate-card {
+      background: #e8e4c8;
+      border: 1px solid #999;
+      padding: 42px 52px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 4px 4px 0px #aaa8a0;
+      text-align: center;
+    }
+
+    .gate-title {
+      font-size: 16px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #333;
+    }
+
+    .gate-sub {
+      font-size: 11px;
+      color: #666;
+      max-width: 260px;
+      line-height: 1.75;
+    }
+
+    .gate-btn {
+      margin-top: 8px;
+      padding: 10px 40px;
+      border: 1px solid #888;
+      background: #e0dbb8;
+      cursor: pointer;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    .gate-btn:hover  { background: #d6d0a8; }
+    .gate-btn:active { background: #cac49a; }
+
+    /* ─── OVERLAY ─── */
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1500;
+      justify-content: center;
+      align-items: center;
+    }
+    #overlay.active { display: flex; }
+
+    /* ─── POPUP ─── */
+    #popup {
+      background: #e8e4c8;
+      border: 1px solid #999;
+      width: clamp(300px, 40vw, 480px);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 4px 0px #aaa8a0, 2px 2px 0px #bbb;
+    }
+
+    .popup-titlebar {
+      background: #d4cfaa;
+      border-bottom: 1px solid #aaa;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .popup-titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .popup-titlebar-left img { width: 18px; height: 18px; }
+
+    .popup-titlebar-text {
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      color: #333;
+    }
+
+    .popup-close-btn {
+      width: 18px;
+      height: 18px;
+      background: #e0dbb8;
+      border: 1px solid #888;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #444;
+      flex-shrink: 0;
+      line-height: 1;
+      padding-bottom: 1px;
+    }
+    .popup-close-btn:hover  { background: #d0cba8; }
+    .popup-close-btn:active { background: #c4be98; }
+
+    .popup-body {
+      padding: 20px 20px 16px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .popup-body img.warn-icon {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .popup-body-text { font-size: 12px; color: #444; line-height: 1.75; }
+
+    .popup-footer {
+      border-top: 1px solid #bbb;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .popup-btn {
+      padding: 6px 22px;
+      border: 1px solid #888;
+      background: #e0dbb8;
+      cursor: pointer;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    .popup-btn:hover  { background: #d6d0a8; }
+    .popup-btn:active { background: #cac49a; }
+
+    /* ─── MAIN CARD ─── */
     .card {
       background-color: #e8e4c8;
       width: clamp(400px, 70vw, 1100px);
@@ -50,15 +196,8 @@
       gap: 4px;
     }
 
-    .card-top .app-title {
-      font-size: 22px;
-      letter-spacing: 1px;
-    }
-
-    .card-top .app-sub {
-      font-size: 11px;
-      color: #555;
-    }
+    .card-top .app-title { font-size: 22px; letter-spacing: 1px; }
+    .card-top .app-sub   { font-size: 11px; color: #555; }
 
     .divider {
       border: none;
@@ -109,16 +248,10 @@
       font-size: 14px;
       letter-spacing: 0.5px;
     }
-
     .btn:hover  { background: #d6d0a8; }
     .btn:active { background: #cac49a; }
 
-    .btn-note {
-      font-size: 10px;
-      color: #777;
-      text-align: center;
-      margin-top: 3px;
-    }
+    .btn-note { font-size: 10px; color: #777; text-align: center; margin-top: 3px; }
 
     .instructions {
       border-top: 1px solid #bbb;
@@ -142,18 +275,8 @@
       gap: 8px;
     }
 
-    .card-bottom .copy {
-      font-size: 10px;
-      color: #666;
-      line-height: 1.7;
-    }
-
-    .card-bottom .legal {
-      font-size: 10px;
-      color: #888;
-      text-align: right;
-      line-height: 1.7;
-    }
+    .card-bottom .copy  { font-size: 10px; color: #666; line-height: 1.7; }
+    .card-bottom .legal { font-size: 10px; color: #888; text-align: right; line-height: 1.7; }
 
     .loading-wrap {
       flex: 1;
@@ -170,134 +293,29 @@
       animation: spin 0.7s steps(8, end) infinite;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .loading-text { font-size: 13px; color: #555; }
 
     #content { display: none; width: 100%; flex: 1; flex-direction: column; }
     #loader  { display: flex; }
-
-    /* ── OVERLAY ── */
-    #overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      z-index: 999;
-      justify-content: center;
-      align-items: center;
-    }
-    #overlay.active {
-      display: flex;
-    }
-
-    /* ── POPUP ── */
-    #popup {
-      background: #e8e4c8;
-      border: 1px solid #999;
-      width: clamp(300px, 40vw, 480px);
-      display: flex;
-      flex-direction: column;
-      box-shadow: 4px 4px 0px #aaa8a0, 2px 2px 0px #bbb;
-      position: relative;
-    }
-
-    /* Title bar */
-    .popup-titlebar {
-      background: #d4cfaa;
-      border-bottom: 1px solid #aaa;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .popup-titlebar-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .popup-titlebar-left img {
-      width: 18px;
-      height: 18px;
-    }
-
-    .popup-titlebar-text {
-      font-size: 12px;
-      font-weight: bold;
-      letter-spacing: 0.5px;
-      color: #333;
-    }
-
-    .popup-close-btn {
-      width: 18px;
-      height: 18px;
-      background: #e0dbb8;
-      border: 1px solid #888;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      color: #444;
-      flex-shrink: 0;
-      line-height: 1;
-      padding-bottom: 1px;
-    }
-    .popup-close-btn:hover  { background: #d0cba8; }
-    .popup-close-btn:active { background: #c4be98; }
-
-    /* Popup body */
-    .popup-body {
-      padding: 20px 20px 16px 20px;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-    }
-
-    .popup-body img.warn-icon {
-      width: 36px;
-      height: 36px;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .popup-body-text {
-      font-size: 12px;
-      color: #444;
-      line-height: 1.75;
-    }
-
-    /* Popup footer */
-    .popup-footer {
-      border-top: 1px solid #bbb;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .popup-btn {
-      padding: 6px 22px;
-      border: 1px solid #888;
-      background: #e0dbb8;
-      cursor: pointer;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-    }
-    .popup-btn:hover  { background: #d6d0a8; }
-    .popup-btn:active { background: #cac49a; }
-
-    .popup-btn-yes {
-      background: #d9d4b0;
-    }
   </style>
 </head>
 <body>
+
+  <!-- ── ENTRY GATE ── -->
+  <!-- Browsers require a real user gesture (click) before allowing fullscreen.
+       This gate collects that gesture before anything else shows. -->
+  <div id="entry-gate">
+    <div class="gate-card">
+      <span class="gate-title">ARC BASE</span>
+      <p class="gate-sub">
+        Click below to enter the secure testing environment.<br />
+        Full screen mode is required to continue.
+      </p>
+      <button class="gate-btn" onclick="enterKiosk()">Enter</button>
+    </div>
+  </div>
 
   <!-- ── EXIT WARNING OVERLAY ── -->
   <div id="overlay">
@@ -318,12 +336,13 @@
         </p>
       </div>
       <div class="popup-footer">
-        <button class="popup-btn popup-btn-yes" onclick="confirmExit()">Yes</button>
+        <button class="popup-btn" onclick="confirmExit()">Yes</button>
         <button class="popup-btn" onclick="closePopup()">Cancel</button>
       </div>
     </div>
   </div>
 
+  <!-- ── MAIN CARD ── -->
   <div class="card">
 
     <img src="lg.png" alt="Logo" class="logo" />
@@ -341,14 +360,12 @@
     </div>
 
     <div id="content">
-
       <div class="card-middle">
         <span class="desc-title">Welcome</span>
         <p class="desc-body">
-          Select an option below to proceed. "Training" is intended for practicing upcoming tests. Test Sign In is for
-          proper testing. Only use the "Test Sign In" button when instructed to.
+          Select an option below to proceed. "Training" is intended for practicing upcoming tests.
+          Test Sign In is for proper testing. Only use the "Test Sign In" button when instructed to.
         </p>
-
         <div class="btn-group">
           <div>
             <button class="btn" onclick="go('https://TRAINING_URL_HERE')">Training</button>
@@ -379,20 +396,18 @@
           Use subject to Terms of Service &amp; Acceptable Use Policy.
         </div>
       </div>
-
     </div>
 
   </div>
 
   <script>
+    var _pendingExit = false;  // true only when user clicked Yes to intentionally exit
+    var _kioskActive = false;  // guards against firing before the gate is passed
+
     /* ── NAVIGATE ── */
-    function go(url) {
-      window.location.href = url;
-    }
+    function go(url) { window.location.href = url; }
 
     /* ── POPUP ── */
-    var _pendingExit = false;
-
     function showPopup() {
       document.getElementById('overlay').classList.add('active');
     }
@@ -400,104 +415,119 @@
     function closePopup() {
       document.getElementById('overlay').classList.remove('active');
       _pendingExit = false;
-      // Re-enter fullscreen if user cancelled
-      requestFullscreen();
+      requestFS(); // pull back into fullscreen on cancel
     }
 
     function confirmExit() {
       _pendingExit = true;
       document.getElementById('overlay').classList.remove('active');
-      exitFullscreen();
+      exitFS();
     }
 
-    /* ── FULLSCREEN ── */
-    function requestFullscreen() {
+    /* ── FULLSCREEN HELPERS ── */
+    function requestFS() {
       var el = document.documentElement;
-      var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-      if (fn) fn.call(el).catch(function(){});
+      var fn = el.requestFullscreen
+             || el.webkitRequestFullscreen
+             || el.mozRequestFullScreen
+             || el.msRequestFullscreen;
+      if (fn) { try { fn.call(el); } catch(err) {} }
     }
 
-    function exitFullscreen() {
-      var fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-      if (fn) fn.call(document).catch(function(){});
+    function exitFS() {
+      var fn = document.exitFullscreen
+             || document.webkitExitFullscreen
+             || document.mozCancelFullScreen
+             || document.msExitFullscreen;
+      if (fn) { try { fn.call(document); } catch(err) {} }
     }
 
-    function isFullscreen() {
+    function isFS() {
       return !!(
-        document.fullscreenElement ||
-        document.webkitFullscreenElement ||
-        document.mozFullScreenElement ||
+        document.fullscreenElement      ||
+        document.webkitFullscreenElement||
+        document.mozFullScreenElement   ||
         document.msFullscreenElement
       );
     }
 
-    // Listen for fullscreen change — if we left fullscreen without user confirming, show popup and re-enter
-    function onFullscreenChange() {
-      if (!isFullscreen() && !_pendingExit) {
+    /* ── FULLSCREEN CHANGE LISTENER ──
+       Fires when fullscreen state changes for ANY reason (Esc, F11, browser chrome, etc.)
+       If we weren't expecting it, show the popup and immediately re-request fullscreen. */
+    function onFSChange() {
+      if (!_kioskActive) return;
+      if (!isFS() && !_pendingExit) {
         showPopup();
-        // Small delay so the popup renders before we try to re-enter
-        setTimeout(requestFullscreen, 80);
+        setTimeout(requestFS, 80);
       }
     }
 
-    document.addEventListener('fullscreenchange',       onFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-    document.addEventListener('mozfullscreenchange',    onFullscreenChange);
-    document.addEventListener('MSFullscreenChange',     onFullscreenChange);
+    document.addEventListener('fullscreenchange',       onFSChange);
+    document.addEventListener('webkitfullscreenchange', onFSChange);
+    document.addEventListener('mozfullscreenchange',    onFSChange);
+    document.addEventListener('MSFullscreenChange',     onFSChange);
 
-    /* ── KIOSK LOCKDOWN ── */
-
-    // Block right-click context menu
-    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-
-    // Block common devtools / utility keyboard shortcuts
+    /* ── KEYBOARD LOCKDOWN ── */
     document.addEventListener('keydown', function(e) {
-      var key = e.key || '';
-      var code = e.code || '';
+      var k = e.key || '';
 
-      // F12
-      if (key === 'F12') { e.preventDefault(); return; }
+      // DevTools
+      if (k === 'F12') { e.preventDefault(); return; }
 
-      // Ctrl/Cmd combos
+      // Ctrl / Cmd combos
       if (e.ctrlKey || e.metaKey) {
-        var blocked = ['u','U','s','S','a','A','c','C','v','V','p','P','f','F','g','G','h','H','j','J','k','K','n','N','t','T','w','W','r','R','l','L','e','E','o','O','b','B'];
-        if (blocked.includes(key)) { e.preventDefault(); return; }
-        // Ctrl+Shift+I / J / C / K
-        if (e.shiftKey && ['i','I','j','J','c','C','k','K'].includes(key)) { e.preventDefault(); return; }
+        // Block all single-letter shortcuts
+        if (/^[a-zA-Z]$/.test(k)) { e.preventDefault(); return; }
+        // Ctrl+Shift+I/J/C/K (devtools)
+        if (e.shiftKey && /^[iIjJcCkK]$/.test(k)) { e.preventDefault(); return; }
       }
 
-      // F-keys that open browser UI
-      var blockedFKeys = ['F1','F3','F5','F6','F7','F10','F11'];
-      if (blockedFKeys.includes(key)) { e.preventDefault(); return; }
+      // Block browser F-keys
+      if (['F1','F3','F5','F6','F7','F10','F11'].indexOf(k) !== -1) {
+        e.preventDefault(); return;
+      }
 
-      // Alt+F4 / Alt+Tab — can't fully block OS-level, but prevent default
-      if (e.altKey && (key === 'F4' || key === 'Tab')) { e.preventDefault(); return; }
+      // Alt+F4, Alt+Tab
+      if (e.altKey && (k === 'F4' || k === 'Tab')) { e.preventDefault(); return; }
 
-      // Escape — prevent exiting fullscreen natively (we handle it via fullscreenchange)
-      if (key === 'Escape') { e.preventDefault(); return; }
-    }, true);
+      // ESC — intercept before the browser can use it to exit fullscreen.
+      // The fullscreenchange listener handles the popup if fullscreen actually drops.
+      // This catches it early so the popup shows immediately.
+      if (k === 'Escape') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (_kioskActive && !document.getElementById('overlay').classList.contains('active')) {
+          showPopup();
+          // re-request in case browser already started dropping fullscreen
+          setTimeout(requestFS, 60);
+        }
+        return;
+      }
+    }, true); // capture phase so we beat the browser's built-in handler
 
-    // Prevent drag
-    document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+    /* ── MISC LOCKDOWN ── */
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    document.addEventListener('dragstart',   function(e) { e.preventDefault(); });
 
-    // Disable text selection via mouse events when holding certain combos (already handled by CSS user-select)
+    /* ── ENTRY GATE ──
+       enterKiosk() is wired to the Enter button click, which IS a valid user gesture.
+       Fullscreen will be granted here. Calling requestFS() on page load (no gesture)
+       is why the old version didn't work — browsers silently reject that. */
+    function enterKiosk() {
+      requestFS();
+      _kioskActive = true;
 
-    /* ── INIT ── */
-    window.addEventListener('load', function () {
-      // Enter fullscreen immediately
-      requestFullscreen();
+      // Hide the gate
+      document.getElementById('entry-gate').style.display = 'none';
 
-      setTimeout(function () {
-        document.body.style.display = 'none';
-        void document.body.offsetHeight;
-        document.body.style.display = '';
-
+      // Show loading, then content
+      setTimeout(function() {
         document.getElementById('loader').style.display = 'none';
         var c = document.getElementById('content');
-        c.style.display = 'flex';
+        c.style.display      = 'flex';
         c.style.flexDirection = 'column';
       }, 1200);
-    });
+    }
   </script>
 
 </body>
