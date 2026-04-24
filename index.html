@@ -17,7 +17,6 @@
       -webkit-user-select: none;
     }
 
-    /* ─── ENTRY GATE ─── */
     #entry-gate {
       position: fixed;
       inset: 0;
@@ -66,7 +65,6 @@
     .gate-btn:hover  { background: #d6d0a8; }
     .gate-btn:active { background: #cac49a; }
 
-    /* ─── OVERLAY ─── */
     #overlay {
       display: none;
       position: fixed;
@@ -78,7 +76,6 @@
     }
     #overlay.active { display: flex; }
 
-    /* ─── POPUP ─── */
     #popup {
       background: #e8e4c8;
       border: 1px solid #999;
@@ -166,7 +163,6 @@
     .popup-btn:hover  { background: #d6d0a8; }
     .popup-btn:active { background: #cac49a; }
 
-    /* ─── MAIN CARD ─── */
     .card {
       background-color: #e8e4c8;
       width: clamp(400px, 70vw, 1100px);
@@ -177,6 +173,7 @@
       justify-content: space-between;
       align-items: stretch;
       position: relative;
+      overflow: hidden;
     }
 
     .logo {
@@ -186,6 +183,7 @@
       width: 64px;
       height: 64px;
       object-fit: contain;
+      z-index: 2;
     }
 
     .card-top {
@@ -194,6 +192,8 @@
       flex-direction: column;
       align-items: flex-end;
       gap: 4px;
+      position: relative;
+      z-index: 2;
     }
 
     .card-top .app-title { font-size: 22px; letter-spacing: 1px; }
@@ -203,6 +203,8 @@
       border: none;
       border-top: 1px solid #aaa;
       margin: 12px 24px 0 24px;
+      position: relative;
+      z-index: 2;
     }
 
     .card-middle {
@@ -213,6 +215,8 @@
       align-items: center;
       gap: 10px;
       padding: 24px;
+      position: relative;
+      z-index: 2;
     }
 
     .card-middle .desc-title {
@@ -257,6 +261,8 @@
       border-top: 1px solid #bbb;
       margin: 0 24px 14px 24px;
       padding-top: 12px;
+      position: relative;
+      z-index: 2;
     }
 
     .instructions p span {
@@ -273,6 +279,8 @@
       justify-content: space-between;
       align-items: flex-end;
       gap: 8px;
+      position: relative;
+      z-index: 2;
     }
 
     .card-bottom .copy  { font-size: 10px; color: #666; line-height: 1.7; }
@@ -285,6 +293,8 @@
       justify-content: center;
       align-items: center;
       gap: 10px;
+      position: relative;
+      z-index: 2;
     }
 
     .spinner {
@@ -299,13 +309,110 @@
 
     #content { display: none; width: 100%; flex: 1; flex-direction: column; }
     #loader  { display: flex; }
+
+    #content-mask {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 10;
+    }
+
+    #penalty-screen {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      padding: 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .penalty-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #888;
+    }
+
+    .penalty-timer {
+      font-size: 52px;
+      letter-spacing: 4px;
+      color: #333;
+      font-variant-numeric: tabular-nums;
+      font-family: monospace;
+    }
+
+    .penalty-msg {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      max-width: 340px;
+      line-height: 1.8;
+    }
+
+    .penalty-divider {
+      border: none;
+      border-top: 1px solid #bbb;
+      width: 200px;
+    }
+
+    .penalty-code-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .penalty-code-label {
+      font-size: 10px;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .penalty-code-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .penalty-code-input {
+      width: 140px;
+      padding: 7px 10px;
+      border: 1px solid #999;
+      background: #f0ecce;
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: #333;
+      outline: none;
+    }
+
+    .penalty-code-input:focus { border-color: #777; }
+
+    .penalty-code-btn {
+      padding: 7px 18px;
+      border: 1px solid #888;
+      background: #e0dbb8;
+      cursor: pointer;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    .penalty-code-btn:hover  { background: #d6d0a8; }
+    .penalty-code-btn:active { background: #cac49a; }
+
+    .penalty-code-error {
+      font-size: 10px;
+      color: #a05050;
+      min-height: 14px;
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ── ENTRY GATE ── -->
-  <!-- Browsers require a real user gesture (click) before allowing fullscreen.
-       This gate collects that gesture before anything else shows. -->
   <div id="entry-gate">
     <div class="gate-card">
       <span class="gate-title">ARC BASE</span>
@@ -317,7 +424,6 @@
     </div>
   </div>
 
-  <!-- ── EXIT WARNING OVERLAY ── -->
   <div id="overlay">
     <div id="popup">
       <div class="popup-titlebar">
@@ -342,8 +448,9 @@
     </div>
   </div>
 
-  <!-- ── MAIN CARD ── -->
   <div class="card">
+
+    <div id="content-mask"></div>
 
     <img src="lg.png" alt="Logo" class="logo" />
 
@@ -398,62 +505,143 @@
       </div>
     </div>
 
+    <div id="penalty-screen">
+      <span class="penalty-label">Session Suspended</span>
+      <span class="penalty-timer" id="penalty-timer">20:00</span>
+      <p class="penalty-msg">
+        An unauthorized exit was detected. Access is suspended for the duration shown above.
+        Authorized personnel have been notified.
+      </p>
+      <div class="penalty-divider"></div>
+      <div class="penalty-code-wrap">
+        <span class="penalty-code-label">Override Code</span>
+        <div class="penalty-code-row">
+          <input
+            class="penalty-code-input"
+            id="penalty-code-input"
+            type="password"
+            placeholder="Enter code"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="penalty-code-btn" onclick="submitCode()">Submit</button>
+        </div>
+        <span class="penalty-code-error" id="penalty-code-error"></span>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    var _pendingExit = false;  // true only when user clicked Yes to intentionally exit
-    var _kioskActive = false;  // guards against firing before the gate is passed
+    var _pendingExit  = false;
+    var _kioskActive  = false;
+    var _onPenalty    = false;
+    var _penaltyTimer = null;
+    var _penaltySecs  = 20 * 60;
 
-    /* ── NAVIGATE ── */
+    var ADMIN_CODE = 'admin';
+
     function go(url) { window.location.href = url; }
 
-    /* ── POPUP ── */
     function showPopup() {
+      if (_onPenalty) return;
+      if (document.getElementById('content').style.display !== 'none') {
+        document.getElementById('content-mask').style.display = 'block';
+      }
       document.getElementById('overlay').classList.add('active');
     }
 
     function closePopup() {
       document.getElementById('overlay').classList.remove('active');
+      document.getElementById('content-mask').style.display = 'none';
       _pendingExit = false;
-      requestFS(); // pull back into fullscreen on cancel
+      requestFS();
     }
 
     function confirmExit() {
       _pendingExit = true;
       document.getElementById('overlay').classList.remove('active');
-      exitFS();
+      document.getElementById('content-mask').style.display = 'none';
+      startPenalty();
     }
 
-    /* ── FULLSCREEN HELPERS ── */
+    function startPenalty() {
+      _onPenalty = true;
+      _penaltySecs = 20 * 60;
+
+      document.getElementById('content').style.display = 'none';
+      document.getElementById('loader').style.display  = 'none';
+
+      var ps = document.getElementById('penalty-screen');
+      ps.style.display      = 'flex';
+      ps.style.flexDirection = 'column';
+
+      document.getElementById('penalty-code-input').value = '';
+      document.getElementById('penalty-code-error').textContent = '';
+
+      updateTimerDisplay();
+
+      _penaltyTimer = setInterval(function() {
+        _penaltySecs--;
+        updateTimerDisplay();
+        if (_penaltySecs <= 0) {
+          clearInterval(_penaltyTimer);
+          endPenalty();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      var m = Math.floor(_penaltySecs / 60);
+      var s = _penaltySecs % 60;
+      document.getElementById('penalty-timer').textContent =
+        (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function endPenalty() {
+      _onPenalty    = false;
+      _pendingExit  = false;
+
+      document.getElementById('penalty-screen').style.display = 'none';
+
+      var c = document.getElementById('content');
+      c.style.display      = 'flex';
+      c.style.flexDirection = 'column';
+    }
+
+    function submitCode() {
+      var val = document.getElementById('penalty-code-input').value;
+      if (val === ADMIN_CODE) {
+        clearInterval(_penaltyTimer);
+        endPenalty();
+      } else {
+        var err = document.getElementById('penalty-code-error');
+        err.textContent = 'Invalid code.';
+        document.getElementById('penalty-code-input').value = '';
+        setTimeout(function() { err.textContent = ''; }, 2000);
+      }
+    }
+
+    document.getElementById('penalty-code-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); submitCode(); }
+    });
+
     function requestFS() {
       var el = document.documentElement;
-      var fn = el.requestFullscreen
-             || el.webkitRequestFullscreen
-             || el.mozRequestFullScreen
-             || el.msRequestFullscreen;
+      var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
       if (fn) { try { fn.call(el); } catch(err) {} }
     }
 
     function exitFS() {
-      var fn = document.exitFullscreen
-             || document.webkitExitFullscreen
-             || document.mozCancelFullScreen
-             || document.msExitFullscreen;
+      var fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
       if (fn) { try { fn.call(document); } catch(err) {} }
     }
 
     function isFS() {
-      return !!(
-        document.fullscreenElement      ||
-        document.webkitFullscreenElement||
-        document.mozFullScreenElement   ||
-        document.msFullscreenElement
-      );
+      return !!(document.fullscreenElement || document.webkitFullscreenElement ||
+                document.mozFullScreenElement || document.msFullscreenElement);
     }
 
-    /* ── FULLSCREEN CHANGE LISTENER ──
-       Fires when fullscreen state changes for ANY reason (Esc, F11, browser chrome, etc.)
-       If we weren't expecting it, show the popup and immediately re-request fullscreen. */
     function onFSChange() {
       if (!_kioskActive) return;
       if (!isFS() && !_pendingExit) {
@@ -467,60 +655,41 @@
     document.addEventListener('mozfullscreenchange',    onFSChange);
     document.addEventListener('MSFullscreenChange',     onFSChange);
 
-    /* ── KEYBOARD LOCKDOWN ── */
     document.addEventListener('keydown', function(e) {
       var k = e.key || '';
 
-      // DevTools
       if (k === 'F12') { e.preventDefault(); return; }
 
-      // Ctrl / Cmd combos
       if (e.ctrlKey || e.metaKey) {
-        // Block all single-letter shortcuts
         if (/^[a-zA-Z]$/.test(k)) { e.preventDefault(); return; }
-        // Ctrl+Shift+I/J/C/K (devtools)
         if (e.shiftKey && /^[iIjJcCkK]$/.test(k)) { e.preventDefault(); return; }
       }
 
-      // Block browser F-keys
       if (['F1','F3','F5','F6','F7','F10','F11'].indexOf(k) !== -1) {
         e.preventDefault(); return;
       }
 
-      // Alt+F4, Alt+Tab
       if (e.altKey && (k === 'F4' || k === 'Tab')) { e.preventDefault(); return; }
 
-      // ESC — intercept before the browser can use it to exit fullscreen.
-      // The fullscreenchange listener handles the popup if fullscreen actually drops.
-      // This catches it early so the popup shows immediately.
       if (k === 'Escape') {
         e.preventDefault();
         e.stopImmediatePropagation();
-        if (_kioskActive && !document.getElementById('overlay').classList.contains('active')) {
+        if (_kioskActive && !_onPenalty && !document.getElementById('overlay').classList.contains('active')) {
           showPopup();
-          // re-request in case browser already started dropping fullscreen
           setTimeout(requestFS, 60);
         }
         return;
       }
-    }, true); // capture phase so we beat the browser's built-in handler
+    }, true);
 
-    /* ── MISC LOCKDOWN ── */
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
     document.addEventListener('dragstart',   function(e) { e.preventDefault(); });
 
-    /* ── ENTRY GATE ──
-       enterKiosk() is wired to the Enter button click, which IS a valid user gesture.
-       Fullscreen will be granted here. Calling requestFS() on page load (no gesture)
-       is why the old version didn't work — browsers silently reject that. */
     function enterKiosk() {
       requestFS();
       _kioskActive = true;
-
-      // Hide the gate
       document.getElementById('entry-gate').style.display = 'none';
 
-      // Show loading, then content
       setTimeout(function() {
         document.getElementById('loader').style.display = 'none';
         var c = document.getElementById('content');
