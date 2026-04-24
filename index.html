@@ -1,24 +1,123 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Loading Order...</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal</title>
   <style>
-    body {
-      background-color: #F4F4F4;
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+
+    body {
+      background-color: #d3d3d3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .logo {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .card {
+      background-color: #e8e4c8;
+      width: auto;
+      height: 100vh;
+      aspect-ratio: 9 / 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .btn {
+      width: 180px;
+      padding: 10px 0;
+      border: 1px solid #888;
+      background: #e0dbb8;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn:hover {
+      background: #d6d0a8;
+    }
+
+    .btn:active {
+      background: #cac49a;
+    }
+
+    .loading-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      animation: spin 0.7s steps(8, end) infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 14px;
+    }
+
+    #content { display: none; }
+    #loader  { display: flex; }
   </style>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const siteTH = "1000.0000";
-        const sV = "100";
-        console.log(siteTH);
-        console.log(sV);
-        document.title = siteTH;
-      });
-    </script>
-  </head>
-  <body>
-  
-  </body>
+</head>
+<body>
+
+  <img src="lg.png" alt="Logo" class="logo" />
+
+  <div class="card">
+
+    <div class="loading-wrap" id="loader">
+      <img src="lc.svg" alt="Loading" class="spinner" />
+      <span class="loading-text">Loading</span>
+    </div>
+
+    <div id="content">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:18px;">
+        <button class="btn" onclick="go('https://TRAINING_URL_HERE')">Training</button>
+        <button class="btn" onclick="go('https://TEST_SIGN_IN_URL_HERE')">Test Sign In</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function go(url) {
+      window.location.href = url;
+    }
+
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        document.body.style.display = 'none';
+        void document.body.offsetHeight;
+        document.body.style.display = '';
+
+        document.getElementById('loader').style.display  = 'none';
+        document.getElementById('content').style.display = 'block';
+      }, 1200);
+    });
+  </script>
+
+</body>
 </html>
