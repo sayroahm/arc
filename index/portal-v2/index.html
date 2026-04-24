@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal</title>
+  <style>
+    :root {
+      --font-scale: 1;
+      --base-font: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #d3d3d3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+      -webkit-user-select: none;
+      font-size: calc(var(--base-font) * var(--font-scale));
+    }
+
+    #entry-gate {
+      position: fixed;
+      inset: 0;
+      background: #d3d3d3;
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .gate-card {
+      background: #e8e4c8;
+      border: 1px solid #999;
+      padding: 42px 52px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 4px 4px 0px #aaa8a0;
+      text-align: center;
+    }
+
+    .gate-title { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: #333; }
+    .gate-sub   { font-size: 11px; color: #666; max-width: 260px; line-height: 1.75; }
+
+    .gate-btn {
+      margin-top: 8px;
+      padding: 10px 40px;
+      border: 1px solid #888;
+      background: #e0dbb8;
+      cursor: pointer;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    .gate-btn:hover  { background: #d6d0a8; }
+    .gate-btn:active { background: #cac49a; }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1500;
+      justify-content: center;
+      align-items: center;
+    }
+    #overlay.active { display: flex; }
+
+    #popup {
+      background: #e8e4c8;
+      border: 1px solid #999;
+      width: clamp(300px, 40vw, 480px);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 4px 0px #aaa8a0, 2px 2px 0px #bbb;
+    }
+
+    .popup-titlebar {
+      background: #d4cfaa;
+      border-bottom: 1px solid #aaa;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .popup-titlebar-left { display: flex; align-items: center; gap: 8px; }
+    .popup-titlebar-left img { width: 18px; height: 18px; }
+    .popup-titlebar-text { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: #333; }
+
+    .popup-close-btn {
+      width: 18px; height: 18px;
+      background: #e0dbb8;
+      border: 1px solid #888;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #444;
+      flex-shrink: 0; line-height: 1; padding-bottom: 1px;
+    }
+    .popup-close-btn:hover  { background: #d0cba8; }
+    .popup-close-btn:active { background: #c4be98; }
+
+    .popup-body { padding: 20px 20px 16px 20px; display: flex; gap: 14px; align-items: flex-start; }
+    .popup-body img.warn-icon { width: 36px; height: 36px; flex-shrink: 0; margin-top: 2px; }
+    .popup-body-text { font-size: 12px; color: #444; line-height: 1.75; }
+
+    .popup-footer {
+      border-top: 1px solid #bbb;
+      padding: 12px 20px;
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+
+    .popup-btn {
+      padding: 6px 22px;
+      border: 1px solid #888;
+      background: #e0dbb8;
+      cursor: pointer;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    .popup-btn:hover  { background: #d6d0a8; }
+    .popup-btn:active { background: #cac49a; }
+
+    .card {
+      background-color: #e8e4c8;
+      width: clamp(400px, 70vw, 1100px);
+      height: calc(100vh - 48px);
+      margin: 24px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: stretch;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo {
+      position: absolute;
+      top: 18px; left: 18px;
+      width: 64px; height: 64px;
+      object-fit: contain;
+      z-index: 2;
+    }
+
+    .settings-icon-btn {
+      position: absolute;
+      top: 20px; right: 20px;
+      width: 28px; height: 28px;
+      cursor: pointer;
+      z-index: 20;
+      background: none;
+      border: none;
+      padding: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .settings-icon-btn img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: brightness(0);
+      display: block;
+    }
+
+    .card-top {
+      padding: 18px 24px 0 24px;
+      display: flex; flex-direction: column; align-items: flex-end;
+      gap: 4px; position: relative; z-index: 2;
+    }
+
+    .card-top .app-title { font-size: 22px; letter-spacing: 1px; }
+    .card-top .app-sub   { font-size: 11px; color: #555; }
+
+    .divider {
+      border: none; border-top: 1px solid #aaa;
+      margin: 12px 24px 0 24px; position: relative; z-index: 2;
+    }
+
+    .card-middle {
+      flex: 1; display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      gap: 10px; padding: 24px; position: relative; z-index: 2;
+    }
+
+    .card-middle .desc-title {
+      font-size: calc(13px * var(--font-scale));
+      text-align: center; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;
+    }
+
+    .card-middle .desc-body {
+      font-size: calc(12px * var(--font-scale));
+      color: #555; text-align: center; max-width: 420px; line-height: 1.7; margin-bottom: 18px;
+    }
+
+    .btn-group { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+    .btn {
+      width: 200px; padding: 10px 0;
+      border: 1px solid #888; background: #e0dbb8;
+      cursor: pointer;
+      font-size: calc(14px * var(--font-scale));
+      letter-spacing: 0.5px;
+    }
+    .btn:hover  { background: #d6d0a8; }
+    .btn:active { background: #cac49a; }
+
+    .btn-note {
+      font-size: calc(10px * var(--font-scale));
+      color: #777; text-align: center; margin-top: 3px;
+    }
+
+    .conduct-box {
+      border: 1px solid #aaa;
+      margin: 0 24px 14px 24px;
+      padding: 12px 14px;
+      position: relative; z-index: 2;
+    }
+
+    .conduct-title {
+      font-size: calc(10px * var(--font-scale));
+      font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; color: #444; margin-bottom: 7px;
+    }
+
+    .conduct-body {
+      font-size: calc(9.5px * var(--font-scale));
+      color: #555; line-height: 1.75;
+      user-select: text; -webkit-user-select: text;
+    }
+
+    .instructions {
+      border-top: 1px solid #bbb;
+      margin: 0 24px 14px 24px; padding-top: 12px;
+      position: relative; z-index: 2;
+    }
+
+    .instructions p span {
+      display: block;
+      font-size: calc(11px * var(--font-scale));
+      color: #555; line-height: 1.9;
+    }
+
+    .card-bottom {
+      border-top: 1px solid #aaa;
+      padding: 12px 24px;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      gap: 8px; position: relative; z-index: 2;
+    }
+
+    .card-bottom .copy  { font-size: calc(10px * var(--font-scale)); color: #666; line-height: 1.7; }
+    .card-bottom .legal { font-size: calc(10px * var(--font-scale)); color: #888; text-align: right; line-height: 1.7; }
+
+    .loading-wrap {
+      flex: 1; display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      gap: 10px; position: relative; z-index: 2;
+    }
+
+    .spinner { width: 48px; height: 48px; animation: spin 0.7s steps(8, end) infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #555; }
+
+    #content { display: none; width: 100%; flex: 1; flex-direction: column; }
+    #loader  { display: flex; }
+
+    #content-mask {
+      display: none;
+      position: absolute; inset: 0;
+      background: #e8e4c8;
+      z-index: 10;
+    }
+
+    #penalty-screen {
+      display: none; flex: 1; flex-direction: column;
+      justify-content: center; align-items: center;
+      gap: 18px; padding: 24px; position: relative; z-index: 2;
+    }
+
+    .penalty-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888; }
+
+    .penalty-timer {
+      font-size: 52px; letter-spacing: 4px; color: #333;
+      font-variant-numeric: tabular-nums; font-family: monospace;
+    }
+
+    .penalty-msg { font-size: 11px; color: #666; text-align: center; max-width: 340px; line-height: 1.8; }
+
+    .penalty-divider { border: none; border-top: 1px solid #bbb; width: 200px; }
+
+    .penalty-code-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .penalty-code-label { font-size: 10px; color: #888; letter-spacing: 1px; text-transform: uppercase; }
+    .penalty-code-row { display: flex; gap: 8px; align-items: center; }
+
+    .penalty-code-input {
+      width: 140px; padding: 7px 10px;
+      border: 1px solid #999; background: #f0ecce;
+      font-size: 13px; letter-spacing: 1px; color: #333; outline: none;
+    }
+    .penalty-code-input:focus { border-color: #777; }
+
+    .penalty-code-btn {
+      padding: 7px 18px; border: 1px solid #888; background: #e0dbb8;
+      cursor: pointer; font-size: 12px; letter-spacing: 0.5px;
+    }
+    .penalty-code-btn:hover  { background: #d6d0a8; }
+    .penalty-code-btn:active { background: #cac49a; }
+
+    .penalty-code-error { font-size: 10px; color: #a05050; min-height: 14px; letter-spacing: 0.5px; }
+
+    #settings-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 1400;
+      justify-content: center; align-items: center;
+    }
+    #settings-overlay.active { display: flex; }
+
+    #settings-popup {
+      background: #e8e4c8;
+      border: 1px solid #999;
+      width: clamp(320px, 44vw, 520px);
+      display: flex; flex-direction: column;
+      box-shadow: 4px 4px 0px #aaa8a0, 2px 2px 0px #bbb;
+      max-height: 80vh;
+    }
+
+    .settings-titlebar {
+      background: #d4cfaa;
+      border-bottom: 1px solid #aaa;
+      padding: 8px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .settings-titlebar-left { display: flex; align-items: center; gap: 8px; }
+    .settings-titlebar-left img { width: 16px; height: 16px; filter: brightness(0); }
+    .settings-titlebar-text { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: #333; }
+
+    .settings-body {
+      padding: 16px 18px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .settings-section {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .settings-section-title {
+      font-size: 9px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #888;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+    }
+
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+
+    .settings-label {
+      font-size: 11px; color: #333; line-height: 1.4; flex: 1;
+    }
+
+    .settings-sublabel {
+      font-size: 9.5px; color: #777; margin-top: 2px;
+    }
+
+    .toggle-track {
+      width: 36px; height: 20px;
+      background: #bbb;
+      border: 1px solid #999;
+      border-radius: 0;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .toggle-track.on { background: #8a8470; border-color: #777; }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px;
+      background: #e8e4c8;
+      border: 1px solid #999;
+      transition: left 0.15s;
+    }
+
+    .toggle-track.on .toggle-thumb { left: 18px; }
+
+    .font-scale-controls {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .font-scale-btn {
+      width: 24px; height: 24px;
+      border: 1px solid #888; background: #e0dbb8;
+      cursor: pointer; font-size: 14px; color: #333;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1; flex-shrink: 0;
+    }
+    .font-scale-btn:hover  { background: #d6d0a8; }
+    .font-scale-btn:active { background: #cac49a; }
+
+    .font-scale-display {
+      font-size: 11px; color: #444; min-width: 32px; text-align: center;
+    }
+
+    .lang-select {
+      padding: 5px 8px;
+      border: 1px solid #999; background: #f0ecce;
+      font-size: 11px; color: #333; outline: none;
+      cursor: pointer; max-width: 160px;
+    }
+
+    .settings-footer {
+      border-top: 1px solid #bbb;
+      padding: 10px 18px;
+      display: flex; justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    #magnifier-tab {
+      display: none;
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 320px;
+      background: #d4cfaa;
+      border: 1px solid #999;
+      border-top: none;
+      z-index: 1300;
+      flex-direction: column;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    #magnifier-tab.visible { display: flex; }
+
+    #magnifier-tab-bar {
+      background: #c8c4a4;
+      border-bottom: 1px solid #aaa;
+      padding: 4px 8px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: ns-resize;
+      user-select: none; -webkit-user-select: none;
+    }
+
+    #magnifier-tab-bar span { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #555; }
+
+    #magnifier-canvas {
+      display: block;
+      width: 100%;
+      image-rendering: pixelated;
+    }
+
+    #tts-context-menu {
+      display: none;
+      position: fixed;
+      background: #e8e4c8;
+      border: 1px solid #999;
+      box-shadow: 2px 2px 0px #aaa;
+      z-index: 1800;
+      flex-direction: column;
+    }
+
+    #tts-context-menu.visible { display: flex; }
+
+    .tts-menu-item {
+      padding: 7px 16px;
+      font-size: 11px; color: #333;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 1px solid #ddd;
+    }
+    .tts-menu-item:last-child { border-bottom: none; }
+    .tts-menu-item:hover { background: #d6d0a8; }
+  </style>
+</head>
+<body>
+
+  <div id="entry-gate">
+    <div class="gate-card">
+      <span class="gate-title">ARC BASE</span>
+      <p class="gate-sub">
+        Click below to enter the secure testing environment.<br />
+        Full screen mode is required to continue.
+      </p>
+      <button class="gate-btn" onclick="enterKiosk()">Enter</button>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div id="popup">
+      <div class="popup-titlebar">
+        <div class="popup-titlebar-left">
+          <img src="W.png" alt="Warning" />
+          <span class="popup-titlebar-text">Exit testing?</span>
+        </div>
+        <button class="popup-close-btn" onclick="closePopup()">&#x2715;</button>
+      </div>
+      <div class="popup-body">
+        <img class="warn-icon" src="W.png" alt="Warning Icon" />
+        <p class="popup-body-text">
+          Are you sure you want to close this testing application?
+          Exiting during testing time and uninstructed to do so will
+          notify proper authorized personnel.
+        </p>
+      </div>
+      <div class="popup-footer">
+        <button class="popup-btn" onclick="confirmExit()">Yes</button>
+        <button class="popup-btn" onclick="closePopup()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings-overlay">
+    <div id="settings-popup">
+      <div class="settings-titlebar">
+        <div class="settings-titlebar-left">
+          <img src="s.png" alt="Settings" />
+          <span class="settings-titlebar-text">Accessibility Settings</span>
+        </div>
+        <button class="popup-close-btn" onclick="closeSettings()">&#x2715;</button>
+      </div>
+
+      <div class="settings-body">
+
+        <div class="settings-section">
+          <div class="settings-section-title">Text Size</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Adjust Text Size</div>
+              <div class="settings-sublabel">Scales all body and label text</div>
+            </div>
+            <div class="font-scale-controls">
+              <button class="font-scale-btn" onclick="adjustFont(-1)">&#x2212;</button>
+              <span class="font-scale-display" id="font-scale-display">100%</span>
+              <button class="font-scale-btn" onclick="adjustFont(1)">&#x2B;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Magnifier</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Docked Magnifier</div>
+              <div class="settings-sublabel">Shows a magnified view of the area around your cursor at the top of the screen</div>
+            </div>
+            <div class="toggle-track" id="toggle-magnifier" onclick="toggleMagnifier()">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Text to Speech</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Enable Text to Speech</div>
+              <div class="settings-sublabel">Highlight any text, then right-click to speak it aloud</div>
+            </div>
+            <div class="toggle-track" id="toggle-tts" onclick="toggleTTS()">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+          <div class="settings-row" id="tts-rate-row" style="opacity:0.4;pointer-events:none;">
+            <div>
+              <div class="settings-label">Speech Rate</div>
+            </div>
+            <div class="font-scale-controls">
+              <button class="font-scale-btn" onclick="adjustRate(-1)">&#x2212;</button>
+              <span class="font-scale-display" id="tts-rate-display">1.0x</span>
+              <button class="font-scale-btn" onclick="adjustRate(1)">&#x2B;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Language</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Interface Language</div>
+              <div class="settings-sublabel">Changes displayed text language</div>
+            </div>
+            <select class="lang-select" id="lang-select" onchange="applyLanguage(this.value)">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="pt">Português</option>
+              <option value="ar">العربية</option>
+              <option value="ru">Русский</option>
+              <option value="hi">हिन्दी</option>
+              <option value="vi">Tiếng Việt</option>
+              <option value="tl">Filipino</option>
+              <option value="ht">Kreyòl ayisyen</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="settings-footer">
+        <button class="popup-btn" onclick="closeSettings()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tts-context-menu">
+    <div class="tts-menu-item" onclick="speakSelected()">&#x1F50A; Speak Selected Text</div>
+    <div class="tts-menu-item" onclick="stopSpeech()">&#x23F9; Stop Speaking</div>
+    <div class="tts-menu-item" onclick="hideTTSMenu()">Cancel</div>
+  </div>
+
+  <div id="magnifier-tab">
+    <div id="magnifier-tab-bar">
+      <span>Magnifier</span>
+      <span id="magnifier-size-label">Drag to resize</span>
+    </div>
+    <canvas id="magnifier-canvas" width="320" height="120"></canvas>
+  </div>
+
+  <div class="card">
+
+    <div id="content-mask"></div>
+
+    <img src="lg.png" alt="Logo" class="logo" />
+
+    <button class="settings-icon-btn" onclick="openSettings()" title="Accessibility Settings" aria-label="Accessibility Settings">
+      <img src="s.png" alt="Settings" />
+    </button>
+
+    <div class="card-top">
+      <span class="app-title">ARC BASE</span>
+      <span class="app-sub" id="txt-sub">Internal Access System &mdash; v2.1</span>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="loading-wrap" id="loader">
+      <img src="lc.svg" alt="Loading" class="spinner" />
+      <span class="loading-text" id="txt-loading">Loading</span>
+    </div>
+
+    <div id="content">
+      <div class="card-middle">
+        <span class="desc-title" id="txt-welcome">Welcome</span>
+        <p class="desc-body" id="txt-desc">
+          Select an option below to proceed. "Training" is intended for practicing upcoming tests.
+          Test Sign In is for proper testing. Only use the "Test Sign In" button when instructed to.
+        </p>
+        <div class="btn-group">
+          <div>
+            <button class="btn" onclick="go('https://TRAINING_URL_HERE')" id="txt-btn-training">Training</button>
+            <p class="btn-note" id="txt-note-training">* For enrolled users &amp; students</p>
+          </div>
+          <div>
+            <button class="btn" onclick="go('https://TEST_SIGN_IN_URL_HERE')" id="txt-btn-test">Test Sign In</button>
+            <p class="btn-note" id="txt-note-test">* USE WHEN INSTRUCTED</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="conduct-box">
+        <div class="conduct-title" id="txt-conduct-title">Code of Conduct</div>
+        <p class="conduct-body" id="txt-conduct-body">
+          By accessing or using this secure testing environment, you acknowledge and agree to comply with all applicable testing security policies and federal law.<br /><br />
+          All assessment content within ARC Base is strictly confidential and protected under the Copyright Act of 1976 (Title 17 of the United States Code). Unauthorized reproduction, capture, distribution, transmission, or disclosure of any testing materials&mdash;by any means, including but not limited to copying, photographing, recording, or sharing&mdash;is strictly prohibited.<br /><br />
+          Any violation of these terms may result in immediate removal from the testing environment, compromise and invalidation of your test, and referral for disciplinary action. Violations may also subject individuals to civil penalties, including statutory damages that may range from $750 to $30,000 per work infringed, as well as additional legal consequences under applicable law.
+        </p>
+      </div>
+
+      <div class="instructions">
+        <p>
+          <span id="txt-inst1">* You must have a valid account to proceed through either option.</span>
+          <span id="txt-inst2">* Unauthorized access attempts are logged and may be reported.</span>
+          <span id="txt-inst3">* Contact your system administrator if you are unable to sign in.</span>
+        </p>
+      </div>
+
+      <div class="card-bottom">
+        <div class="copy" id="txt-copy">
+          &copy; 2026 ARC Base, Inc. All rights reserved.<br />
+          Unauthorized use of this system is strictly prohibited.
+        </div>
+        <div class="legal" id="txt-legal">
+          &trade; ARC Base is a trademark of ARC Base, Inc.<br />
+          Use subject to Terms of Service &amp; Acceptable Use Policy.
+        </div>
+      </div>
+    </div>
+
+    <div id="penalty-screen">
+      <span class="penalty-label" id="txt-suspended">Session Suspended</span>
+      <span class="penalty-timer" id="penalty-timer">20:00</span>
+      <p class="penalty-msg" id="txt-penalty-msg">
+        An unauthorized exit was detected. Access is suspended for the duration shown above.
+        Authorized personnel have been notified.
+      </p>
+      <div class="penalty-divider"></div>
+      <div class="penalty-code-wrap">
+        <span class="penalty-code-label" id="txt-override">Override Code</span>
+        <div class="penalty-code-row">
+          <input
+            class="penalty-code-input"
+            id="penalty-code-input"
+            type="password"
+            placeholder="Enter code"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="penalty-code-btn" onclick="submitCode()" id="txt-submit">Submit</button>
+        </div>
+        <span class="penalty-code-error" id="penalty-code-error"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var _pendingExit     = false;
+    var _kioskActive     = false;
+    var _onPenalty       = false;
+    var _penaltyInterval = null;
+    var _ttsEnabled      = false;
+    var _magnifierOn     = false;
+    var _magHeight       = 120;
+    var _magDragging     = false;
+    var _magDragStartY   = 0;
+    var _magDragStartH   = 0;
+    var _ttsRate         = 1.0;
+    var _fontStep        = 0;
+    var _currentLang     = 'en';
+    var _rafId           = null;
+    var _mouseX          = 0;
+    var _mouseY          = 0;
+
+    var ADMIN_CODE = 'admin';
+    var LS_KEY     = 'arcbase_penalty_end';
+
+    var TRANSLATIONS = {
+      en: {
+        sub: 'Internal Access System \u2014 v2.1',
+        loading: 'Loading',
+        welcome: 'Welcome',
+        desc: 'Select an option below to proceed. \u201cTraining\u201d is intended for practicing upcoming tests. Test Sign In is for proper testing. Only use the \u201cTest Sign In\u201d button when instructed to.',
+        btnTraining: 'Training',
+        noteTraining: '* For enrolled users & students',
+        btnTest: 'Test Sign In',
+        noteTest: '* USE WHEN INSTRUCTED',
+        conductTitle: 'Code of Conduct',
+        conductBody: 'By accessing or using this secure testing environment, you acknowledge and agree to comply with all applicable testing security policies and federal law.\n\nAll assessment content within ARC Base is strictly confidential and protected under the Copyright Act of 1976 (Title 17 of the United States Code). Unauthorized reproduction, capture, distribution, transmission, or disclosure of any testing materials\u2014by any means, including but not limited to copying, photographing, recording, or sharing\u2014is strictly prohibited.\n\nAny violation of these terms may result in immediate removal from the testing environment, compromise and invalidation of your test, and referral for disciplinary action. Violations may also subject individuals to civil penalties, including statutory damages that may range from $750 to $30,000 per work infringed, as well as additional legal consequences under applicable law.',
+        inst1: '* You must have a valid account to proceed through either option.',
+        inst2: '* Unauthorized access attempts are logged and may be reported.',
+        inst3: '* Contact your system administrator if you are unable to sign in.',
+        copy: '\u00a9 2026 ARC Base, Inc. All rights reserved.\nUnauthorized use of this system is strictly prohibited.',
+        legal: '\u2122 ARC Base is a trademark of ARC Base, Inc.\nUse subject to Terms of Service & Acceptable Use Policy.',
+        suspended: 'Session Suspended',
+        penaltyMsg: 'An unauthorized exit was detected. Access is suspended for the duration shown above. Authorized personnel have been notified.',
+        override: 'Override Code',
+        submit: 'Submit'
+      },
+      es: {
+        sub: 'Sistema de Acceso Interno \u2014 v2.1',
+        loading: 'Cargando',
+        welcome: 'Bienvenido',
+        desc: 'Seleccione una opci\u00f3n a continuaci\u00f3n. "Entrenamiento" es para practicar ex\u00e1menes. "Iniciar sesi\u00f3n de prueba" es para la evaluaci\u00f3n formal. Use ese bot\u00f3n solo cuando se le indique.',
+        btnTraining: 'Entrenamiento',
+        noteTraining: '* Para usuarios inscritos y estudiantes',
+        btnTest: 'Iniciar Sesi\u00f3n de Prueba',
+        noteTest: '* USE CUANDO SE LE INDIQUE',
+        conductTitle: 'C\u00f3digo de Conducta',
+        conductBody: 'Al acceder a este entorno de evaluaci\u00f3n seguro, usted reconoce y acepta cumplir con todas las pol\u00edticas de seguridad aplicables y la ley federal.\n\nTodo el contenido de evaluaci\u00f3n es estrictamente confidencial. La reproducci\u00f3n, captura o distribuci\u00f3n no autorizada est\u00e1 estrictamente prohibida.\n\nCualquier violaci\u00f3n puede resultar en la eliminaci\u00f3n inmediata del entorno y consecuencias legales.',
+        inst1: '* Debe tener una cuenta v\u00e1lida para continuar.',
+        inst2: '* Los intentos de acceso no autorizados se registran.',
+        inst3: '* Contacte al administrador si no puede iniciar sesi\u00f3n.',
+        copy: '\u00a9 2026 ARC Base, Inc. Todos los derechos reservados.',
+        legal: '\u2122 ARC Base es una marca registrada de ARC Base, Inc.',
+        suspended: 'Sesi\u00f3n Suspendida',
+        penaltyMsg: 'Se detect\u00f3 una salida no autorizada. El acceso est\u00e1 suspendido por el tiempo indicado.',
+        override: 'C\u00f3digo de Acceso',
+        submit: 'Enviar'
+      },
+      fr: {
+        sub: 'Syst\u00e8me d\u2019acc\u00e8s interne \u2014 v2.1',
+        loading: 'Chargement',
+        welcome: 'Bienvenue',
+        desc: 'S\u00e9lectionnez une option ci-dessous. \u00ab Entra\u00eenement \u00bb est pour pratiquer. \u00ab Connexion au test \u00bb est pour l\u2019\u00e9valuation officielle. Utilisez ce bouton uniquement lorsqu\u2019on vous le demande.',
+        btnTraining: 'Entra\u00eenement',
+        noteTraining: '* Pour les utilisateurs inscrits et \u00e9tudiants',
+        btnTest: 'Connexion au Test',
+        noteTest: '* UTILISER QUAND DEMAND\u00c9',
+        conductTitle: 'Code de Conduite',
+        conductBody: 'En acc\u00e9dant \u00e0 cet environnement de test s\u00e9curis\u00e9, vous acceptez de respecter toutes les politiques de s\u00e9curit\u00e9 applicables et la l\u00e9gislation f\u00e9d\u00e9rale.\n\nTout le contenu est strictement confidentiel. La reproduction ou distribution non autoris\u00e9e est strictement interdite.\n\nToute violation peut entra\u00eener une exclusion imm\u00e9diate et des cons\u00e9quences juridiques.',
+        inst1: '* Vous devez avoir un compte valide pour continuer.',
+        inst2: '* Les tentatives d\u2019acc\u00e8s non autoris\u00e9es sont enregistr\u00e9es.',
+        inst3: '* Contactez votre administrateur si vous ne pouvez pas vous connecter.',
+        copy: '\u00a9 2026 ARC Base, Inc. Tous droits r\u00e9serv\u00e9s.',
+        legal: '\u2122 ARC Base est une marque d\u00e9pos\u00e9e de ARC Base, Inc.',
+        suspended: 'Session Suspendue',
+        penaltyMsg: 'Une sortie non autoris\u00e9e a \u00e9t\u00e9 d\u00e9tect\u00e9e. L\u2019acc\u00e8s est suspendu.',
+        override: 'Code de Remplacement',
+        submit: 'Soumettre'
+      },
+      de: { sub:'Internes Zugangssystem \u2014 v2.1',loading:'Laden',welcome:'Willkommen',desc:'W\u00e4hlen Sie unten eine Option. \u201eTraining\u201c dient zur \u00dcbung. \u201eTest-Anmeldung\u201c ist f\u00fcr die offizielle Pr\u00fcfung. Verwenden Sie diese Schaltfl\u00e4che nur auf Anweisung.',btnTraining:'Training',noteTraining:'* F\u00fcr eingeschriebene Benutzer und Sch\u00fcler',btnTest:'Test-Anmeldung',noteTest:'* NUR AUF ANWEISUNG VERWENDEN',conductTitle:'Verhaltenskodex',conductBody:'Mit dem Zugriff auf diese sichere Testumgebung best\u00e4tigen Sie, alle Sicherheitsrichtlinien einzuhalten.\n\nAlle Pr\u00fcfungsinhalte sind streng vertraulich. Unbefugte Reproduktion ist strengstens verboten.\n\nVerst\u00f6\u00dfe k\u00f6nnen zur sofortigen Entfernung und rechtlichen Konsequenzen f\u00fchren.',inst1:'* Sie ben\u00f6tigen ein g\u00fcltiges Konto.',inst2:'* Unbefugte Zugriffsversuche werden protokolliert.',inst3:'* Kontaktieren Sie Ihren Administrator bei Problemen.',copy:'\u00a9 2026 ARC Base, Inc. Alle Rechte vorbehalten.',legal:'\u2122 ARC Base ist eine Marke der ARC Base, Inc.',suspended:'Sitzung Gesperrt',penaltyMsg:'Ein unbefugter Austritt wurde erkannt. Der Zugang ist gesperrt.',override:'Override-Code',submit:'Einreichen' },
+      zh: { sub:'\u5185\u90e8\u8bbf\u95ee\u7cfb\u7edf \u2014 v2.1',loading:'\u52a0\u8f7d\u4e2d',welcome:'\u6b22\u8fce',desc:'\u8bf7\u9009\u62e9\u4e0b\u65b9\u7684\u9009\u9879\u3002\u201c\u57f9\u8bad\u201d\u7528\u4e8e\u7ec3\u4e60\u5373\u5c06\u8fdb\u884c\u7684\u6d4b\u8bd5\u3002\u201c\u6d4b\u8bd5\u767b\u5f55\u201d\u7528\u4e8e\u6b63\u5f0f\u8003\u8bd5\uff0c\u4ec5\u5728\u88ab\u544a\u77e5\u65f6\u4f7f\u7528\u3002',btnTraining:'\u57f9\u8bad',noteTraining:'* \u9002\u7528\u4e8e\u5df2\u6ce8\u518c\u7528\u6237\u548c\u5b66\u751f',btnTest:'\u6d4b\u8bd5\u767b\u5f55',noteTest:'* \u4ec5\u5728\u88ab\u544a\u77e5\u65f6\u4f7f\u7528',conductTitle:'\u884c\u4e3a\u51c6\u5219',conductBody:'\u8bbf\u95ee\u6b64\u5b89\u5168\u6d4b\u8bd5\u73af\u5883\u5373\u8868\u793a\u60a8\u540c\u610f\u9075\u5b88\u6240\u6709\u9002\u7528\u7684\u6d4b\u8bd5\u5b89\u5168\u653f\u7b56\u548c\u8054\u90a6\u6cd5\u5f8b\u3002\n\n\u6240\u6709\u8bc4\u4f30\u5185\u5bb9\u5747\u4e25\u683c\u4fdd\u5bc6\u3002\u672a\u7ecf\u6388\u6743\u7684\u590d\u5236\u3001\u5206\u53d1\u6216\u4f20\u8f93\u4e25\u683c\u7981\u6b62\u3002\n\n\u8fdd\u53cd\u53ef\u80fd\u5bfc\u81f4\u7acb\u5373\u5220\u9664\u548c\u6cd5\u5f8b\u540e\u679c\u3002',inst1:'* \u60a8\u5fc5\u987b\u62e5\u6709\u6709\u6548\u8d26\u6237\u624d\u80fd\u7ee7\u7eed\u3002',inst2:'* \u672a\u7ecf\u6388\u6743\u7684\u8bbf\u95ee\u5c1d\u8bd5\u5c06\u88ab\u8bb0\u5f55\u3002',inst3:'* \u5982\u679c\u65e0\u6cd5\u767b\u5f55\uff0c\u8bf7\u8054\u7cfb\u7cfb\u7edf\u7ba1\u7406\u5458\u3002',copy:'\u00a9 2026 ARC Base, Inc. \u7248\u6743\u6240\u6709\u3002',legal:'\u2122 ARC Base \u662f ARC Base, Inc. \u7684\u5546\u6807\u3002',suspended:'\u4f1a\u8bdd\u5df2\u6682\u505c',penaltyMsg:'\u68c0\u6d4b\u5230\u672a\u7ecf\u6388\u6743\u7684\u9000\u51fa\u3002\u8bbf\u95ee\u5df2\u6682\u505c\u3002',override:'\u8986\u76d6\u4ee3\u7801',submit:'\u63d0\u4ea4' },
+      ja: { sub:'\u5185\u90e8\u30a2\u30af\u30bb\u30b9\u30b7\u30b9\u30c6\u30e0 \u2014 v2.1',loading:'\u8aad\u307f\u8fbc\u307f\u4e2d',welcome:'\u3088\u3046\u3053\u305d',desc:'\u4ee5\u4e0b\u306e\u30aa\u30d7\u30b7\u30e7\u30f3\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044\u3002\u300c\u30c8\u30ec\u30fc\u30cb\u30f3\u30b0\u300d\u306f\u7df4\u7fd2\u7528\u3067\u3059\u3002\u300c\u30c6\u30b9\u30c8\u30b5\u30a4\u30f3\u30a4\u30f3\u300d\u306f\u6307\u793a\u3055\u308c\u305f\u5834\u5408\u306b\u306e\u307f\u4f7f\u7528\u3057\u3066\u304f\u3060\u3055\u3044\u3002',btnTraining:'\u30c8\u30ec\u30fc\u30cb\u30f3\u30b0',noteTraining:'* \u767b\u9332\u30e6\u30fc\u30b6\u30fc\u30fb\u5b66\u751f\u5411\u3051',btnTest:'\u30c6\u30b9\u30c8\u30b5\u30a4\u30f3\u30a4\u30f3',noteTest:'* \u6307\u793a\u3055\u308c\u305f\u5834\u5408\u306e\u307f\u4f7f\u7528',conductTitle:'\u884c\u52d5\u898f\u7bc4',conductBody:'\u3053\u306e\u5b89\u5168\u306a\u30c6\u30b9\u30c8\u74b0\u5883\u306b\u30a2\u30af\u30bb\u30b9\u3059\u308b\u3053\u3068\u3067\u3001\u3059\u3079\u3066\u306e\u30bb\u30ad\u30e5\u30ea\u30c6\u30a3\u30dd\u30ea\u30b7\u30fc\u3068\u9023\u90a6\u6cd5\u3092\u9075\u5b88\u3059\u308b\u3053\u3068\u306b\u540c\u610f\u3057\u305f\u3053\u3068\u306b\u306a\u308a\u307e\u3059\u3002\n\n\u3059\u3079\u3066\u306e\u8a55\u4fa1\u30b3\u30f3\u30c6\u30f3\u30c4\u306f\u56fd\u5185\u6cd5\u306b\u3088\u308a\u4fdd\u8b77\u3055\u308c\u3066\u3044\u307e\u3059\u3002\u7121\u65ad\u8907\u88fd\u6307\u306f\u56fa\u304f\u7981\u3058\u3089\u308c\u3066\u3044\u307e\u3059\u3002\n\n\u9055\u53cd\u3057\u305f\u5834\u5408\u3001\u5373\u5ea7\u306b\u964d\u9664\u3055\u308c\u3001\u6cd5\u7684\u8cac\u4efb\u3092\u8ca0\u3046\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002',inst1:'* \u7d9a\u884c\u306b\u306f\u6709\u52b9\u306a\u30a2\u30ab\u30a6\u30f3\u30c8\u304c\u5fc5\u8981\u3067\u3059\u3002',inst2:'* \u7121\u65ad\u30a2\u30af\u30bb\u30b9\u306f\u8a18\u9332\u3055\u308c\u307e\u3059\u3002',inst3:'* \u30b5\u30a4\u30f3\u30a4\u30f3\u3067\u304d\u306a\u3044\u5834\u5408\u306f\u7ba1\u7406\u8005\u306b\u304a\u554f\u3044\u5408\u308f\u305b\u304f\u3060\u3055\u3044\u3002',copy:'\u00a9 2026 ARC Base, Inc. \u7121\u65ad\u8ee2\u8f09\u7981\u6b62\u3002',legal:'\u2122 ARC Base\u306fARC Base, Inc.\u306e\u5546\u6a19\u3067\u3059\u3002',suspended:'\u30bb\u30c3\u30b7\u30e7\u30f3\u505c\u6b62',penaltyMsg:'\u7121\u65ad\u9000\u51fa\u304c\u691c\u51fa\u3055\u308c\u307e\u3057\u305f\u3002\u30a2\u30af\u30bb\u30b9\u306f\u505c\u6b62\u4e2d\u3067\u3059\u3002',override:'\u30aa\u30fc\u30d0\u30fc\u30e9\u30a4\u30c9\u30b3\u30fc\u30c9',submit:'\u9001\u4fe1' },
+      ko: { sub:'\ub0b4\ubd80 \uc561\uc138\uc2a4 \uc2dc\uc2a4\ud15c \u2014 v2.1',loading:'\ub85c\ub529 \uc911',welcome:'\ud658\uc601\ud569\ub2c8\ub2e4',desc:'\uc544\ub798 \uc635\uc158\uc744 \uc120\ud0dd\ud558\uc138\uc694. "\ud6c8\ub828"\uc740 \uc5f0\uc2b5\uc6a9\uc785\ub2c8\ub2e4. "\ud14c\uc2a4\ud2b8 \ub85c\uadf8\uc778"\uc740 \uc9c0\uc2dc\uac00 \uc788\uc744 \ub54c\ub9cc \uc0ac\uc6a9\ud558\uc138\uc694.',btnTraining:'\ud6c8\ub828',noteTraining:'* \ub4f1\ub85d\ub41c \uc0ac\uc6a9\uc790 \ubc0f \ud559\uc0dd\uc6a9',btnTest:'\ud14c\uc2a4\ud2b8 \ub85c\uadf8\uc778',noteTest:'* \uc9c0\uc2dc\ub97c \ubc1b\uc558\uc744 \ub54c\ub9cc \uc0ac\uc6a9',conductTitle:'\ud589\ub3d9 \uc218\uce59',conductBody:'\uc774 \ubcf4\uc548 \ud14c\uc2a4\ud2b8 \ud658\uacbd\uc5d0 \uc561\uc138\uc2a4\ud568\uc73c\ub85c\uc368 \ubaa8\ub4e0 \ubcf4\uc548 \uc815\ucc45\uacfc \ubc95\uade0\uc744 \uc900\uc218\ud558\ub294 \ub370 \ub3d9\uc758\ud569\ub2c8\ub2e4.\n\n\ubaa8\ub4e0 \ud3c9\uac00 \ucf58\ud150\uce20\ub294 \ubb34\ub2e8 \ubcf5\uc81c\uac00 \uae08\uc9c0\ub418\uc5b4 \uc788\uc2b5\ub2c8\ub2e4.\n\n\uc704\ubc18 \uc2dc \uc989\uc2dc \uc81c\uac70 \ubc0f \ubc95\uc801 \uacb0\uacfc\uac00 \ubc1c\uc0dd\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.',inst1:'* \uacc4\uc18d\ud558\ub824\uba74 \uc720\ud6a8\ud55c \uacc4\uc815\uc774 \ud544\uc694\ud569\ub2c8\ub2e4.',inst2:'* \ubb34\ub2e8 \uc561\uc138\uc2a4 \uc2dc\ub3c4\ub294 \uae30\ub85d\ub429\ub2c8\ub2e4.',inst3:'* \ub85c\uadf8\uc778\ud560 \uc218 \uc5c6\uc73c\uba74 \uad00\ub9ac\uc790\uc5d0\uac8c \ubb38\uc758\ud558\uc138\uc694.',copy:'\u00a9 2026 ARC Base, Inc. \ubb34\ub2e8 \uc804\uc7ac \uae08\uc9c0.',legal:'\u2122 ARC Base\ub294 ARC Base, Inc.\uc758 \uc0c1\ud45c\uc785\ub2c8\ub2e4.',suspended:'\uc138\uc158 \uc77c\uc2dc\uc815\uc9c0',penaltyMsg:'\ubb34\ub2e8 \uc774\ud0c8\uc774 \uac10\uc9c0\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \uc561\uc138\uc2a4\uac00 \uc77c\uc2dc \uc815\uc9c0\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',override:'\uc624\ubc84\ub77c\uc774\ub4dc \ucf54\ub4dc',submit:'\uc81c\ucd9c' },
+      pt: { sub:'Sistema de Acesso Interno \u2014 v2.1',loading:'Carregando',welcome:'Bem-vindo',desc:'Selecione uma op\u00e7\u00e3o abaixo. "Treinamento" \u00e9 para pr\u00e1tica. "Entrar no Teste" \u00e9 para avalia\u00e7\u00e3o oficial. Use esse bot\u00e3o apenas quando instruido.',btnTraining:'Treinamento',noteTraining:'* Para usu\u00e1rios inscritos e estudantes',btnTest:'Entrar no Teste',noteTest:'* USE QUANDO INSTRUIDO',conductTitle:'C\u00f3digo de Conduta',conductBody:'Ao acessar este ambiente seguro de testes, voc\u00ea concorda em cumprir todas as pol\u00edticas de seguran\u00e7a aplic\u00e1veis e a lei federal.\n\nTodo o conte\u00fado de avalia\u00e7\u00e3o \u00e9 estritamente confidencial. Reprodu\u00e7\u00e3o n\u00e3o autorizada \u00e9 estritamente proibida.\n\nViola\u00e7\u00f5es podem resultar em remo\u00e7\u00e3o imediata e consequ\u00eancias legais.',inst1:'* Voc\u00ea deve ter uma conta v\u00e1lida para continuar.',inst2:'* Tentativas de acesso n\u00e3o autorizado s\u00e3o registradas.',inst3:'* Contate o administrador se n\u00e3o conseguir entrar.',copy:'\u00a9 2026 ARC Base, Inc. Todos os direitos reservados.',legal:'\u2122 ARC Base \u00e9 marca registrada da ARC Base, Inc.',suspended:'Sess\u00e3o Suspensa',penaltyMsg:'Uma sa\u00edda n\u00e3o autorizada foi detectada. O acesso est\u00e1 suspenso.',override:'C\u00f3digo de Substitui\u00e7\u00e3o',submit:'Enviar' },
+      ar: { sub:'\u0646\u0638\u0627\u0645 \u0627\u0644\u0648\u0635\u0648\u0644 \u0627\u0644\u062f\u0627\u062e\u0644\u064a \u2014 v2.1',loading:'\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644',welcome:'\u0623\u0647\u0644\u0627\u064b \u0628\u0643',desc:'\u062d\u062f\u062f \u0623\u062d\u062f \u0627\u0644\u062e\u064a\u0627\u0631\u0627\u062a \u0623\u062f\u0646\u0627\u0647. \u0627\u0644\u062a\u062f\u0631\u064a\u0628 \u0644\u0644\u062a\u062f\u0631\u064a\u0628. \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0644\u0644\u0627\u062e\u062a\u0628\u0627\u0631 \u0627\u0644\u0631\u0633\u0645\u064a \u0641\u0642\u0637 \u0639\u0646\u062f \u0627\u0644\u062a\u0639\u0644\u064a\u0645\u0627\u062a.',btnTraining:'\u062a\u062f\u0631\u064a\u0628',noteTraining:'* \u0644\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646 \u0627\u0644\u0645\u0633\u062c\u0644\u064a\u0646',btnTest:'\u062a\u0633\u062c\u064a\u0644 \u062f\u062e\u0648\u0644 \u0627\u0644\u0627\u062e\u062a\u0628\u0627\u0631',noteTest:'* \u0627\u0633\u062a\u062e\u062f\u0645 \u0639\u0646\u062f \u0627\u0644\u062a\u0639\u0644\u064a\u0645\u0627\u062a \u0641\u0642\u0637',conductTitle:'\u0645\u062f\u0648\u0646\u0629 \u0627\u0644\u0633\u0644\u0648\u0643',conductBody:'\u0628\u0627\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u0647\u0630\u0647 \u0627\u0644\u0628\u064a\u0626\u0629\u060c \u062a\u0642\u0631 \u0628\u0627\u0644\u0627\u0645\u062a\u062b\u0627\u0644 \u0644\u062c\u0645\u064a\u0639 \u0633\u064a\u0627\u0633\u0627\u062a \u0627\u0644\u0623\u0645\u0646 \u0648\u0627\u0644\u0642\u0627\u0646\u0648\u0646 \u0627\u0644\u0641\u064a\u062f\u0631\u0627\u0644\u064a.\n\n\u062c\u0645\u064a\u0639 \u0645\u062d\u062a\u0648\u064a\u0627\u062a \u0627\u0644\u062a\u0642\u064a\u064a\u0645 \u0633\u0631\u064a\u0629 \u0644\u0644\u063a\u0627\u064a\u0629. \u0627\u0644\u0646\u0633\u062e \u063a\u064a\u0631 \u0627\u0644\u0645\u0635\u0631\u062d \u0628\u0647 \u0645\u062d\u0638\u0648\u0631 \u062a\u0645\u0627\u0645\u0627.\n\n\u0627\u0644\u0627\u0646\u062a\u0647\u0627\u0643\u0627\u062a \u0642\u062f \u062a\u0624\u062f\u064a \u0625\u0644\u0649 \u0625\u0632\u0627\u0644\u0629 \u0641\u0648\u0631\u064a\u0629 \u0648\u0639\u0648\u0627\u0642\u0628 \u0642\u0627\u0646\u0648\u0646\u064a\u0629.',inst1:'* \u064a\u062c\u0628 \u0623\u0646 \u064a\u0643\u0648\u0646 \u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628 \u0635\u0627\u0644\u062d \u0644\u0644\u0645\u062a\u0627\u0628\u0639\u0629.',inst2:'* \u064a\u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0645\u062d\u0627\u0648\u0644\u0627\u062a \u0627\u0644\u0648\u0635\u0648\u0644 \u063a\u064a\u0631 \u0627\u0644\u0645\u0635\u0631\u062d \u0628\u0647\u0627.',inst3:'* \u0627\u062a\u0635\u0644 \u0628\u0627\u0644\u0645\u0633\u0624\u0648\u0644 \u0625\u0630\u0627 \u062a\u0639\u0630\u0631 \u0639\u0644\u064a\u0643 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644.',copy:'\u00a9 2026 ARC Base, Inc. \u062c\u0645\u064a\u0639 \u0627\u0644\u062d\u0642\u0648\u0642 \u0645\u062d\u0641\u0648\u0638\u0629.',legal:'\u2122 ARC Base \u0639\u0644\u0627\u0645\u0629 \u062a\u062c\u0627\u0631\u064a\u0629 \u0644\u0640 ARC Base, Inc.',suspended:'\u062a\u0645 \u062a\u0639\u0644\u064a\u0642 \u0627\u0644\u062c\u0644\u0633\u0629',penaltyMsg:'\u062a\u0645 \u0627\u0643\u062a\u0634\u0627\u0641 \u062e\u0631\u0648\u062c \u063a\u064a\u0631 \u0645\u0635\u0631\u062d \u0628\u0647. \u0627\u0644\u0648\u0635\u0648\u0644 \u0645\u0639\u0644\u0642.',override:'\u0631\u0645\u0632 \u0627\u0644\u062a\u062c\u0627\u0648\u0632',submit:'\u0625\u0631\u0633\u0627\u0644' },
+      ru: { sub:'\u0421\u0438\u0441\u0442\u0435\u043c\u0430 \u0432\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0435\u0433\u043e \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u2014 v2.1',loading:'\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430',welcome:'\u0414\u043e\u0431\u0440\u043e \u043f\u043e\u0436\u0430\u043b\u043e\u0432\u0430\u0442\u044c',desc:'\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043e\u0434\u0438\u043d \u0438\u0437 \u0432\u0430\u0440\u0438\u0430\u043d\u0442\u043e\u0432. \u00ab\u041e\u0431\u0443\u0447\u0435\u043d\u0438\u0435\u00bb \u2014 \u0434\u043b\u044f \u043f\u0440\u0430\u043a\u0442\u0438\u043a\u0438. \u00ab\u0412\u0445\u043e\u0434 \u043d\u0430 \u0442\u0435\u0441\u0442\u00bb \u2014 \u0442\u043e\u043b\u044c\u043a\u043e \u043f\u043e \u0438\u043d\u0441\u0442\u0440\u0443\u043a\u0446\u0438\u0438.',btnTraining:'\u041e\u0431\u0443\u0447\u0435\u043d\u0438\u0435',noteTraining:'* \u0414\u043b\u044f \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0445 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439',btnTest:'\u0412\u0445\u043e\u0434 \u043d\u0430 \u0442\u0435\u0441\u0442',noteTest:'* \u0418\u0421\u041f\u041e\u041b\u042c\u0417\u041e\u0412\u0410\u0422\u042c \u041f\u041e \u0418\u041d\u0421\u0422\u0420\u0423\u041a\u0426\u0418\u0418',conductTitle:'\u041a\u043e\u0434\u0435\u043a\u0441 \u043f\u043e\u0432\u0435\u0434\u0435\u043d\u0438\u044f',conductBody:'\u041e\u0431\u0440\u0430\u0449\u0430\u044f\u0441\u044c \u043a \u0434\u0430\u043d\u043d\u043e\u0439 \u0441\u0438\u0441\u0442\u0435\u043c\u0435, \u0432\u044b \u0441\u043e\u0433\u043b\u0430\u0448\u0430\u0435\u0442\u0435\u0441\u044c \u0441\u043e\u0431\u043b\u044e\u0434\u0430\u0442\u044c \u0432\u0441\u0435 \u043f\u043e\u043b\u0438\u0442\u0438\u043a\u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438 \u0438 \u0444\u0435\u0434\u0435\u0440\u0430\u043b\u044c\u043d\u044b\u0435 \u0437\u0430\u043a\u043e\u043d\u044b.\n\n\u0412\u0441\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b \u044f\u0432\u043b\u044f\u044e\u0442\u0441\u044f \u0441\u0442\u0440\u043e\u0433\u043e \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u043c\u0438. \u041d\u0435\u0441\u0430\u043d\u043a\u0446\u0438\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u043e\u0435 \u0432\u043e\u0441\u043f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u0435 \u0441\u0442\u0440\u043e\u0433\u043e \u0437\u0430\u043f\u0440\u0435\u0449\u0435\u043d\u043e.\n\n\u041d\u0430\u0440\u0443\u0448\u0435\u043d\u0438\u0435 \u043c\u043e\u0436\u0435\u0442 \u043f\u043e\u0432\u043b\u0435\u0447\u044c \u043d\u0435\u043c\u0435\u0434\u043b\u0435\u043d\u043d\u043e\u0435 \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0438 \u044e\u0440\u0438\u0434\u0438\u0447\u0435\u0441\u043a\u0438\u0435 \u043f\u043e\u0441\u043b\u0435\u0434\u0441\u0442\u0432\u0438\u044f.',inst1:'* \u0414\u043b\u044f \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0435\u043d\u0438\u044f \u043d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u0430 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043b\u044c\u043d\u0430\u044f \u0443\u0447\u0451\u0442\u043d\u0430\u044f \u0437\u0430\u043f\u0438\u0441\u044c.',inst2:'* \u041f\u043e\u043f\u044b\u0442\u043a\u0438 \u043d\u0435\u0441\u0430\u043d\u043a\u0446\u0438\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u043e\u0433\u043e \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u0444\u0438\u043a\u0441\u0438\u0440\u0443\u044e\u0442\u0441\u044f.',inst3:'* \u0421\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u043e\u043c \u043f\u0440\u0438 \u043f\u0440\u043e\u0431\u043b\u0435\u043c\u0430\u0445 \u0432\u0445\u043e\u0434\u0430.',copy:'\u00a9 2026 ARC Base, Inc. \u0412\u0441\u0435 \u043f\u0440\u0430\u0432\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u044b.',legal:'\u2122 ARC Base \u2014 \u0442\u043e\u0440\u0433\u043e\u0432\u0430\u044f \u043c\u0430\u0440\u043a\u0430 ARC Base, Inc.',suspended:'\u0421\u0435\u0441\u0441\u0438\u044f \u043f\u0440\u0438\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0430',penaltyMsg:'\u041e\u0431\u043d\u0430\u0440\u0443\u0436\u0435\u043d \u043d\u0435\u0441\u0430\u043d\u043a\u0446\u0438\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0439 \u0432\u044b\u0445\u043e\u0434. \u0414\u043e\u0441\u0442\u0443\u043f \u043f\u0440\u0438\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d.',override:'\u041a\u043e\u0434 \u043e\u0431\u0445\u043e\u0434\u0430',submit:'\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c' },
+      hi: { sub:'\u0906\u0902\u0924\u0930\u093f\u0915 \u092a\u0939\u0941\u0901\u091a \u092a\u094d\u0930\u0923\u093e\u0932\u0940 \u2014 v2.1',loading:'\u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948',welcome:'\u0938\u094d\u0935\u093e\u0917\u0924 \u0939\u0948',desc:'\u0928\u0940\u091a\u0947 \u0915\u094b\u0908 \u0935\u093f\u0915\u0932\u094d\u092a \u091a\u0941\u0928\u0947\u0902\u0964 \u0905\u092d\u094d\u092f\u093e\u0938 \u092a\u0930\u0940\u0915\u094d\u0937\u093e \u0915\u0947 \u0932\u093f\u090f "\u092a\u094d\u0930\u0936\u093f\u0915\u094d\u0937\u0923" \u0939\u0948\u0964 "\u092a\u0930\u0940\u0915\u094d\u0937\u093e \u0938\u093e\u0907\u0928 \u0907\u0928" \u0915\u0947\u0935\u0932 \u0928\u093f\u0930\u094d\u0926\u0947\u0936 \u0926\u093f\u090f \u091c\u093e\u0928\u0947 \u092a\u0930 \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0947\u0902\u0964',btnTraining:'\u092a\u094d\u0930\u0936\u093f\u0915\u094d\u0937\u0923',noteTraining:'* \u0928\u093e\u092e\u093e\u0902\u0915\u093f\u0924 \u0909\u092a\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e\u0913\u0902 \u0915\u0947 \u0932\u093f\u090f',btnTest:'\u092a\u0930\u0940\u0915\u094d\u0937\u093e \u0938\u093e\u0907\u0928 \u0907\u0928',noteTest:'* \u0928\u093f\u0930\u094d\u0926\u0947\u0936 \u092a\u0930 \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0947\u0902',conductTitle:'\u0906\u091a\u093e\u0930 \u0938\u0902\u0939\u093f\u0924\u093e',conductBody:'\u0907\u0938 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0935\u093e\u0924\u093e\u0935\u0930\u0923 \u0924\u0915 \u092a\u0939\u0941\u0901\u091a\u0915\u0930 \u0906\u092a \u0938\u092d\u0940 \u0928\u093f\u092f\u092e\u094b\u0902 \u0915\u093e \u092a\u093e\u0932\u0928 \u0915\u0930\u0928\u0947 \u0915\u0940 \u0938\u0939\u092e\u0924\u093f \u0926\u0947\u0924\u0947 \u0939\u0948\u0902\u0964\n\n\u0938\u092d\u0940 \u092e\u0942\u0932\u094d\u092f\u093e\u0902\u0915\u0928 \u0938\u093e\u092e\u0917\u094d\u0930\u0940 \u0915\u0921\u093c\u093e\u0908 \u0938\u0947 \u0917\u094b\u092a\u0928\u0940\u092f \u0939\u0948\u0964 \u0905\u0928\u0927\u093f\u0915\u0943\u0924 \u092a\u094d\u0930\u0924\u093f\u0932\u093f\u092a\u093f \u0915\u0921\u093c\u093e\u0908 \u0938\u0947 \u0935\u0930\u094d\u091c\u093f\u0924 \u0939\u0948\u0964\n\n\u0909\u0932\u094d\u0932\u0902\u0918\u0928 \u092a\u0930 \u0924\u0924\u094d\u0915\u093e\u0932 \u0928\u093f\u0937\u094d\u0915\u093e\u0938\u0928 \u0914\u0930 \u0915\u093e\u0928\u0942\u0928\u0940 \u0915\u093e\u0930\u094d\u0930\u0935\u093e\u0908 \u0939\u094b \u0938\u0915\u0924\u0940 \u0939\u0948\u0964',inst1:'* \u091c\u093e\u0930\u0940 \u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0935\u0948\u0927 \u0916\u093e\u0924\u093e \u0906\u0935\u0936\u094d\u092f\u0915 \u0939\u0948\u0964',inst2:'* \u0905\u0928\u0927\u093f\u0915\u0943\u0924 \u092a\u0939\u0941\u0901\u091a \u092a\u094d\u0930\u092f\u093e\u0938 \u0926\u0930\u094d\u091c \u0915\u093f\u090f \u091c\u093e\u0924\u0947 \u0939\u0948\u0902\u0964',inst3:'* \u0938\u093e\u0907\u0928 \u0907\u0928 \u0928 \u0939\u094b\u0928\u0947 \u092a\u0930 \u092a\u094d\u0930\u0936\u093e\u0938\u0915 \u0938\u0947 \u0938\u0902\u092a\u0930\u094d\u0915 \u0915\u0930\u0947\u0902\u0964',copy:'\u00a9 2026 ARC Base, Inc. \u0938\u0930\u094d\u0935\u093e\u0927\u093f\u0915\u093e\u0930 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924\u0964',legal:'\u2122 ARC Base, ARC Base, Inc. \u0915\u093e \u091f\u094d\u0930\u0947\u0921\u092e\u093e\u0930\u094d\u0915 \u0939\u0948\u0964',suspended:'\u0938\u0947\u0936\u0928 \u0928\u093f\u0932\u0902\u092c\u093f\u0924',penaltyMsg:'\u0905\u0928\u0927\u093f\u0915\u0943\u0924 \u0928\u093f\u0915\u093e\u0938 \u0915\u093e \u092a\u0924\u093e \u091a\u0932\u093e \u0939\u0948\u0964 \u092a\u0939\u0941\u0901\u091a \u0928\u093f\u0932\u0902\u092c\u093f\u0924 \u0939\u0948\u0964',override:'\u0913\u0935\u0930\u0930\u093e\u0907\u0921 \u0915\u094b\u0921',submit:'\u091c\u092e\u093e \u0915\u0930\u0947\u0902' },
+      vi: { sub:'H\u1ec7 Th\u1ed1ng Truy C\u1eadp N\u1ed9i B\u1ed9 \u2014 v2.1',loading:'\u0110ang t\u1ea3i',welcome:'Ch\xe0o m\u1eebng',desc:'Ch\u1ecdn m\u1ed9t t\xf9y ch\u1ecdn b\xean d\u01b0\u1edbi. "Hu\u1ea5n luy\u1ec7n" d\xe0nh cho luy\u1ec7n t\u1eadp. "\u0110\u0103ng nh\u1eadp Ki\u1ec3m tra" ch\u1ec9 d\xf9ng khi \u0111\u01b0\u1ee3c h\u01b0\u1edbng d\u1eabn.',btnTraining:'Hu\u1ea5n luy\u1ec7n',noteTraining:'* D\xe0nh cho ng\u01b0\u1eddi d\xf9ng \u0111\u0103 \u0111\u0103ng k\xfd',btnTest:'\u0110\u0103ng nh\u1eadp Ki\u1ec3m tra',noteTest:'* CH\u1ec8 D\xd9NG KHI \u0110\u01af\u1ee2C H\u01af\u1ebeNG D\u1eaaN',conductTitle:'Quy T\u1eafc \u1ee8ng X\u1eed',conductBody:'B\u1eb1ng c\xe1ch truy c\u1eadp m\xf4i tr\u01b0\u1eddng n\xe0y, b\u1ea1n \u0111\u1ed3ng \u00fd tu\xe2n th\u1ee7 t\u1ea5t c\u1ea3 c\xe1c ch\xednh s\xe1ch b\u1ea3o m\u1eadt v\xe0 lu\u1eadt li\xean bang.\n\nT\u1ea5t c\u1ea3 n\u1ed9i dung \u0111\xe1nh gi\xe1 l\xe0 b\xed m\u1eadt nghi\xeam ng\u1eb7t. Sao ch\xe9p tr\xe1i ph\xe9p b\u1ecb c\u1ea5m tuy\u1ec7t \u0111\u1ed1i.\n\nVi ph\u1ea1m c\xf3 th\u1ec3 d\u1eabn \u0111\u1ebfn h\u1eadu qu\u1ea3 ph\xe1p l\xfd.',inst1:'* B\u1ea1n ph\u1ea3i c\xf3 t\xe0i kho\u1ea3n h\u1ee3p l\u1ec7 \u0111\u1ec3 ti\u1ebfp t\u1ee5c.',inst2:'* C\xe1c l\u1ea7n truy c\u1eadp tr\xe1i ph\xe9p \u0111\u01b0\u1ee3c ghi l\u1ea1i.',inst3:'* Li\xean h\u1ec7 qu\u1ea3n tr\u1ecb vi\xean n\u1ebfu b\u1ea1n kh\xf4ng th\u1ec3 \u0111\u0103ng nh\u1eadp.',copy:'\u00a9 2026 ARC Base, Inc. B\u1ea3o l\u01b0u m\u1ecdi quy\u1ec1n.',legal:'\u2122 ARC Base l\xe0 nh\xe3n hi\u1ec7u c\u1ee7a ARC Base, Inc.',suspended:'Phi\xean L\xe0m Vi\u1ec7c B\u1ecb T\u1ea1m D\u1eebng',penaltyMsg:'Ph\xe1t hi\u1ec7n tho\xf3t kh\u1ecfi tr\xe1i ph\xe9p. Quy\u1ec1n truy c\u1eadp b\u1ecb t\u1ea1m d\u1eebng.',override:'M\xe3 Ghi \u0110\xe8',submit:'G\u1eedi' },
+      tl: { sub:'Panloob na Sistema ng Access \u2014 v2.1',loading:'Naglo-load',welcome:'Maligayang pagdating',desc:'Pumili ng opsyon sa ibaba. Ang "Pagsasanay" ay para sa pagsasanay. Gamitin ang "Test Sign In" lamang kapag inutusan.',btnTraining:'Pagsasanay',noteTraining:'* Para sa mga nakarehistrong gumagamit',btnTest:'Test Sign In',noteTest:'* GAMITIN KAPAG INUTUSAN',conductTitle:'Code of Conduct',conductBody:'Sa pag-access sa ligtas na kapaligiran ng pagsubok na ito, sumasang-ayon ka sa lahat ng patakaran sa seguridad at pederal na batas.\n\nAng lahat ng nilalaman ng pagtatasa ay mahigpit na kumpidensyal. Ipinagbabawal ang hindi awtorisadong pagkopya.\n\nAng mga paglabag ay maaaring magresulta sa agarang pag-alis at legal na kahihinatnan.',inst1:'* Kailangan mo ng wastong account para magpatuloy.',inst2:'* Ang mga hindi awtorisadong pagtatangkang mag-access ay nire-record.',inst3:'* Makipag-ugnayan sa iyong administrator kung hindi ka makapag-sign in.',copy:'\u00a9 2026 ARC Base, Inc. Lahat ng karapatan ay nakalaan.',legal:'\u2122 ARC Base ay trademark ng ARC Base, Inc.',suspended:'Napatigil ang Session',penaltyMsg:'Natukoy ang hindi awtorisadong paglabas. Ang access ay nasuspinde.',override:'Override Code',submit:'Isumite' },
+      ht: { sub:'Sistèm Aksè Entèn \u2014 v2.1',loading:'Chajman',welcome:'Byenveni',desc:'Chwazi yon opsyon anba a. "Fòmasyon" se pou pratike. Sèlman itilize "Koneksyon Tès" lè yo ba ou enstriksyon.',btnTraining:'Fòmasyon',noteTraining:'* Pou itilizatè ak elèv enskrits',btnTest:'Koneksyon Tès',noteTest:'* ITILIZE LÈSKE ENSTRUI',conductTitle:'Kòd Konduit',conductBody:'Lè ou antre nan anviwònman teste sekirize sa a, ou dakò respekte tout règleman sekirite ak lwa federal ki aplikab.\n\nTout kontni evalyasyon se konfidansyèl. Repwodiksyon san otorizasyon entèdi sevèman.\n\nVyolasyon ka lakòz retire imedya ak konsekans legal.',inst1:'* Ou dwe gen yon kont valid pou kontinye.',inst2:'* Tantativ aksè san otorizasyon yo anrejistre.',inst3:'* Kontakte administratè ou si ou pa ka konekte.',copy:'\u00a9 2026 ARC Base, Inc. Tout dwa rezève.',legal:'\u2122 ARC Base se mak komèsyal ARC Base, Inc.',suspended:'Sesyon Sispann',penaltyMsg:'Yon sòti san otorizasyon detekte. Aksè sispann.',override:'Kòd Ranplasman',submit:'Soumèt' }
+    };
+
+    function go(url) { window.location.href = url; }
+
+    function lsSave(ts)  { try { localStorage.setItem(LS_KEY, String(ts)); } catch(e) {} }
+    function lsClear()   { try { localStorage.removeItem(LS_KEY); } catch(e) {} }
+    function lsLoad()    { try { var v = localStorage.getItem(LS_KEY); return v ? parseInt(v, 10) : null; } catch(e) { return null; } }
+
+    function showPopup() {
+      if (_onPenalty) return;
+      if (document.getElementById('content').style.display !== 'none') {
+        document.getElementById('content-mask').style.display = 'block';
+      }
+      document.getElementById('overlay').classList.add('active');
+      closeSettings();
+    }
+
+    function closePopup() {
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('content-mask').style.display = 'none';
+      _pendingExit = false;
+      requestFS();
+    }
+
+    function confirmExit() {
+      _pendingExit = true;
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('content-mask').style.display = 'none';
+      var endTs = Date.now() + 20 * 60 * 1000;
+      lsSave(endTs);
+      startPenalty(endTs);
+    }
+
+    function startPenalty(endTs) {
+      _onPenalty = true;
+      document.getElementById('content').style.display = 'none';
+      document.getElementById('loader').style.display  = 'none';
+      var ps = document.getElementById('penalty-screen');
+      ps.style.display       = 'flex';
+      ps.style.flexDirection = 'column';
+      document.getElementById('penalty-code-input').value       = '';
+      document.getElementById('penalty-code-error').textContent = '';
+      if (_penaltyInterval) clearInterval(_penaltyInterval);
+      function tick() {
+        var remaining = Math.max(0, Math.floor((endTs - Date.now()) / 1000));
+        var m = Math.floor(remaining / 60);
+        var s = remaining % 60;
+        document.getElementById('penalty-timer').textContent =
+          (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        if (remaining <= 0) {
+          clearInterval(_penaltyInterval);
+          _penaltyInterval = null;
+          lsClear();
+          endPenalty();
+        }
+      }
+      tick();
+      _penaltyInterval = setInterval(tick, 500);
+    }
+
+    function endPenalty() {
+      _onPenalty   = false;
+      _pendingExit = false;
+      lsClear();
+      if (_penaltyInterval) { clearInterval(_penaltyInterval); _penaltyInterval = null; }
+      document.getElementById('penalty-screen').style.display = 'none';
+      var c = document.getElementById('content');
+      c.style.display       = 'flex';
+      c.style.flexDirection = 'column';
+    }
+
+    function submitCode() {
+      var val = document.getElementById('penalty-code-input').value;
+      if (val === ADMIN_CODE) {
+        endPenalty();
+      } else {
+        var err = document.getElementById('penalty-code-error');
+        err.textContent = 'Invalid code.';
+        document.getElementById('penalty-code-input').value = '';
+        setTimeout(function() { err.textContent = ''; }, 2000);
+      }
+    }
+
+    document.getElementById('penalty-code-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); submitCode(); }
+    });
+
+    function openSettings()  {
+      document.getElementById('settings-overlay').classList.add('active');
+    }
+    function closeSettings() {
+      document.getElementById('settings-overlay').classList.remove('active');
+    }
+
+    var _fontSteps = [1, 1.1, 1.2, 1.35, 1.5, 1.75, 2.0];
+    var _fontIdx   = 0;
+
+    function adjustFont(dir) {
+      _fontIdx = Math.max(0, Math.min(_fontSteps.length - 1, _fontIdx + dir));
+      var scale = _fontSteps[_fontIdx];
+      document.documentElement.style.setProperty('--font-scale', scale);
+      document.getElementById('font-scale-display').textContent = Math.round(scale * 100) + '%';
+    }
+
+    function toggleMagnifier() {
+      _magnifierOn = !_magnifierOn;
+      var t = document.getElementById('toggle-magnifier');
+      if (_magnifierOn) {
+        t.classList.add('on');
+        document.getElementById('magnifier-tab').classList.add('visible');
+        startMagnifier();
+      } else {
+        t.classList.remove('on');
+        document.getElementById('magnifier-tab').classList.remove('visible');
+        stopMagnifier();
+      }
+    }
+
+    function startMagnifier() {
+      var canvas  = document.getElementById('magnifier-canvas');
+      var ctx     = canvas.getContext('2d');
+      var ZOOM    = 3;
+      var W, H;
+
+      function resizeCanvas() {
+        var tab = document.getElementById('magnifier-tab');
+        W = tab.offsetWidth;
+        H = document.getElementById('magnifier-canvas').offsetHeight;
+        canvas.width  = W;
+        canvas.height = H;
+      }
+
+      resizeCanvas();
+
+      function drawFrame() {
+        if (!_magnifierOn) return;
+        resizeCanvas();
+        var srcW = Math.round(W / ZOOM);
+        var srcH = Math.round(H / ZOOM);
+        var sx   = Math.round(_mouseX - srcW / 2);
+        var sy   = Math.round(_mouseY - srcH / 2);
+        sx = Math.max(0, Math.min(window.innerWidth  - srcW, sx));
+        sy = Math.max(0, Math.min(window.innerHeight - srcH, sy));
+        try {
+          ctx.drawImage(document.documentElement, sx, sy, srcW, srcH, 0, 0, W, H);
+        } catch(err) {
+          ctx.fillStyle = '#d4cfaa';
+          ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = '#888';
+          ctx.font = '11px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('Move cursor over content', W / 2, H / 2);
+        }
+        _rafId = requestAnimationFrame(drawFrame);
+      }
+
+      _rafId = requestAnimationFrame(drawFrame);
+    }
+
+    function stopMagnifier() {
+      if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+    }
+
+    document.addEventListener('mousemove', function(e) {
+      _mouseX = e.clientX;
+      _mouseY = e.clientY;
+    });
+
+    var _magBar = document.getElementById('magnifier-tab-bar');
+    _magBar.addEventListener('mousedown', function(e) {
+      _magDragging    = true;
+      _magDragStartY  = e.clientY;
+      _magDragStartH  = document.getElementById('magnifier-canvas').offsetHeight;
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!_magDragging) return;
+      var delta  = e.clientY - _magDragStartY;
+      var newH   = Math.max(60, Math.min(300, _magDragStartH + delta));
+      document.getElementById('magnifier-canvas').style.height = newH + 'px';
+      document.getElementById('magnifier-canvas').height = newH;
+      document.getElementById('magnifier-size-label').textContent = newH + 'px';
+    });
+
+    document.addEventListener('mouseup', function() { _magDragging = false; });
+
+    function toggleTTS() {
+      _ttsEnabled = !_ttsEnabled;
+      var t   = document.getElementById('toggle-tts');
+      var row = document.getElementById('tts-rate-row');
+      if (_ttsEnabled) {
+        t.classList.add('on');
+        row.style.opacity       = '1';
+        row.style.pointerEvents = 'auto';
+        document.querySelectorAll('.conduct-body, .desc-body, .instructions, .card-bottom').forEach(function(el) {
+          el.style.userSelect         = 'text';
+          el.style.webkitUserSelect   = 'text';
+        });
+      } else {
+        t.classList.remove('on');
+        row.style.opacity       = '0.4';
+        row.style.pointerEvents = 'none';
+        window.speechSynthesis && window.speechSynthesis.cancel();
+        hideTTSMenu();
+      }
+    }
+
+    var _ttsRateSteps = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+    var _ttsRateIdx   = 2;
+
+    function adjustRate(dir) {
+      _ttsRateIdx = Math.max(0, Math.min(_ttsRateSteps.length - 1, _ttsRateIdx + dir));
+      _ttsRate    = _ttsRateSteps[_ttsRateIdx];
+      document.getElementById('tts-rate-display').textContent = _ttsRate.toFixed(2).replace(/\.?0+$/, '') + 'x';
+    }
+
+    var _ttsMenu = document.getElementById('tts-context-menu');
+
+    document.addEventListener('mouseup', function(e) {
+      if (!_ttsEnabled) return;
+      if (_ttsMenu.contains(e.target)) return;
+      var sel = window.getSelection ? window.getSelection().toString().trim() : '';
+      if (sel.length > 0) {
+        _ttsMenu.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
+        _ttsMenu.style.top  = Math.min(e.clientY + 4, window.innerHeight - 100) + 'px';
+        _ttsMenu.classList.add('visible');
+      } else {
+        hideTTSMenu();
+      }
+    });
+
+    document.addEventListener('mousedown', function(e) {
+      if (!_ttsMenu.contains(e.target)) hideTTSMenu();
+    });
+
+    function hideTTSMenu() {
+      _ttsMenu.classList.remove('visible');
+    }
+
+    function speakSelected() {
+      hideTTSMenu();
+      var text = window.getSelection ? window.getSelection().toString().trim() : '';
+      if (!text || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var utt  = new SpeechSynthesisUtterance(text);
+      utt.rate = _ttsRate;
+      utt.lang = _currentLang === 'zh' ? 'zh-CN'
+               : _currentLang === 'ja' ? 'ja-JP'
+               : _currentLang === 'ko' ? 'ko-KR'
+               : _currentLang === 'ar' ? 'ar-SA'
+               : _currentLang === 'ru' ? 'ru-RU'
+               : _currentLang === 'hi' ? 'hi-IN'
+               : _currentLang === 'vi' ? 'vi-VN'
+               : _currentLang === 'pt' ? 'pt-BR'
+               : _currentLang === 'fr' ? 'fr-FR'
+               : _currentLang === 'de' ? 'de-DE'
+               : _currentLang === 'es' ? 'es-ES'
+               : _currentLang === 'tl' ? 'fil-PH'
+               : _currentLang === 'ht' ? 'fr-FR'
+               : 'en-US';
+      window.speechSynthesis.speak(utt);
+    }
+
+    function stopSpeech() {
+      hideTTSMenu();
+      window.speechSynthesis && window.speechSynthesis.cancel();
+    }
+
+    function applyLanguage(lang) {
+      _currentLang = lang;
+      var T = TRANSLATIONS[lang] || TRANSLATIONS['en'];
+      var RTL = ['ar'];
+      document.documentElement.dir = RTL.indexOf(lang) !== -1 ? 'rtl' : 'ltr';
+      document.getElementById('txt-sub').textContent              = T.sub;
+      document.getElementById('txt-loading').textContent         = T.loading;
+      document.getElementById('txt-welcome').textContent         = T.welcome;
+      document.getElementById('txt-desc').textContent            = T.desc;
+      document.getElementById('txt-btn-training').textContent    = T.btnTraining;
+      document.getElementById('txt-note-training').innerHTML     = T.noteTraining;
+      document.getElementById('txt-btn-test').textContent        = T.btnTest;
+      document.getElementById('txt-note-test').textContent       = T.noteTest;
+      document.getElementById('txt-conduct-title').textContent   = T.conductTitle;
+      var cb = document.getElementById('txt-conduct-body');
+      cb.innerHTML = T.conductBody.replace(/\n\n/g, '<br /><br />');
+      document.getElementById('txt-inst1').textContent           = T.inst1;
+      document.getElementById('txt-inst2').textContent           = T.inst2;
+      document.getElementById('txt-inst3').textContent           = T.inst3;
+      document.getElementById('txt-copy').innerHTML              = T.copy.replace(/\n/g, '<br />');
+      document.getElementById('txt-legal').innerHTML             = T.legal.replace(/\n/g, '<br />');
+      document.getElementById('txt-suspended').textContent       = T.suspended;
+      document.getElementById('txt-penalty-msg').textContent     = T.penaltyMsg;
+      document.getElementById('txt-override').textContent        = T.override;
+      document.getElementById('txt-submit').textContent          = T.submit;
+    }
+
+    function requestFS() {
+      var el = document.documentElement;
+      var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (fn) { try { fn.call(el); } catch(err) {} }
+    }
+
+    function isFS() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement ||
+                document.mozFullScreenElement || document.msFullscreenElement);
+    }
+
+    function onFSChange() {
+      if (!_kioskActive) return;
+      if (!isFS() && !_pendingExit) {
+        showPopup();
+        setTimeout(requestFS, 80);
+      }
+    }
+
+    document.addEventListener('fullscreenchange',       onFSChange);
+    document.addEventListener('webkitfullscreenchange', onFSChange);
+    document.addEventListener('mozfullscreenchange',    onFSChange);
+    document.addEventListener('MSFullscreenChange',     onFSChange);
+
+    document.addEventListener('keydown', function(e) {
+      var k = e.key || '';
+      if (k === 'F12') { e.preventDefault(); return; }
+      if (e.ctrlKey || e.metaKey) {
+        if (/^[a-zA-Z]$/.test(k)) { e.preventDefault(); return; }
+        if (e.shiftKey && /^[iIjJcCkK]$/.test(k)) { e.preventDefault(); return; }
+      }
+      if (['F1','F3','F5','F6','F7','F10','F11'].indexOf(k) !== -1) { e.preventDefault(); return; }
+      if (e.altKey && (k === 'F4' || k === 'Tab')) { e.preventDefault(); return; }
+      if (k === 'Escape') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (document.getElementById('settings-overlay').classList.contains('active')) {
+          closeSettings(); return;
+        }
+        if (_kioskActive && !_onPenalty && !document.getElementById('overlay').classList.contains('active')) {
+          showPopup();
+          setTimeout(requestFS, 60);
+        }
+        return;
+      }
+    }, true);
+
+    document.addEventListener('contextmenu', function(e) {
+      if (_ttsEnabled) { e.preventDefault(); return; }
+      e.preventDefault();
+    });
+    document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+
+    function enterKiosk() {
+      _kioskActive = true;
+      document.getElementById('entry-gate').style.display = 'none';
+      var savedEnd = lsLoad();
+      if (savedEnd && savedEnd > Date.now()) {
+        requestFS();
+        document.getElementById('loader').style.display = 'none';
+        startPenalty(savedEnd);
+        return;
+      }
+      lsClear();
+      requestFS();
+      setTimeout(function() {
+        document.getElementById('loader').style.display = 'none';
+        var c = document.getElementById('content');
+        c.style.display       = 'flex';
+        c.style.flexDirection = 'column';
+      }, 1200);
+    }
+  </script>
+
+</body>
+</html>
