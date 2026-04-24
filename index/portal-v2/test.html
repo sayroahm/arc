@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ARC Base — Testing</title>
+<style>
+:root{
+  --bg:#d3d3d3;
+  --card:#e8e4c8;
+  --card-dark:#d4cfaa;
+  --border:#999;
+  --border-light:#bbb;
+  --border-dark:#888;
+  --text:#333;
+  --text-mid:#555;
+  --text-light:#777;
+  --text-faint:#888;
+  --btn-bg:#e0dbb8;
+  --btn-hover:#d6d0a8;
+  --btn-active:#cac49a;
+  --input-bg:#f0ecce;
+  --accent:#8a8470;
+  --danger:#a05050;
+  --flag:#b87a20;
+  --highlight-color:rgba(255,220,80,0.45);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg);
+  min-height:100vh;
+  font-family:Georgia,serif;
+  font-size:13px;
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.screen{display:none;width:100%;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;}
+.screen.active{display:flex;}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  box-shadow:4px 4px 0 #aaa8a0;
+  width:clamp(340px,60vw,780px);
+  display:flex;
+  flex-direction:column;
+  margin:24px 0;
+  position:relative;
+}
+
+.card-header{
+  background:var(--card-dark);
+  border-bottom:1px solid var(--border-light);
+  padding:14px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.card-header-title{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);}
+.card-header-sub{font-size:10px;color:var(--text-faint);margin-top:2px;}
+
+.card-body{padding:24px 24px 20px;}
+.card-footer{
+  border-top:1px solid var(--border-light);
+  padding:14px 24px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+.field-group{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);}
+.field input,.field select,.field textarea{
+  padding:8px 10px;
+  border:1px solid var(--border);
+  background:var(--input-bg);
+  font-size:12px;
+  color:var(--text);
+  outline:none;
+  font-family:Georgia,serif;
+  width:100%;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:80px;}
+
+.btn{
+  padding:8px 22px;
+  border:1px solid var(--border-dark);
+  background:var(--btn-bg);
+  cursor:pointer;
+  font-size:12px;
+  letter-spacing:0.5px;
+  font-family:Georgia,serif;
+  color:var(--text);
+}
+.btn:hover{background:var(--btn-hover);}
+.btn:active{background:var(--btn-active);}
+.btn-primary{background:var(--accent);color:#f0ecce;border-color:#6a6455;}
+.btn-primary:hover{background:#7a7460;}
+.btn-danger{background:#c0a0a0;border-color:#a07070;}
+.btn-danger:hover{background:#b09090;}
+.btn-sm{padding:5px 14px;font-size:11px;}
+
+.info-box{
+  border:1px solid var(--border-light);
+  padding:14px 16px;
+  margin-bottom:16px;
+  background:rgba(0,0,0,0.02);
+}
+.info-box-title{
+  font-size:9px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text-mid);border-bottom:1px solid #ccc;padding-bottom:5px;margin-bottom:10px;
+}
+.info-row{display:flex;gap:12px;margin-bottom:6px;font-size:11px;}
+.info-label{color:var(--text-faint);min-width:100px;flex-shrink:0;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;padding-top:1px;}
+.info-value{color:var(--text);line-height:1.5;}
+
+.conduct-box{border:1px solid var(--border-light);padding:14px 16px;margin-bottom:16px;}
+.conduct-title{font-size:9px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:8px;}
+.conduct-body{font-size:10.5px;color:var(--text-mid);line-height:1.8;}
+
+.error-msg{font-size:11px;color:var(--danger);min-height:16px;margin-top:4px;}
+.success-msg{font-size:11px;color:#4a7a4a;min-height:16px;margin-top:4px;}
+
+.badge{
+  display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;border:1px solid var(--border-light);
+  background:var(--card-dark);margin-right:4px;margin-bottom:4px;
+}
+
+.divider{border:none;border-top:1px solid var(--border-light);margin:16px 0;}
+
+.spinner-wrap{display:flex;align-items:center;justify-content:center;gap:10px;padding:20px;color:var(--text-faint);font-size:12px;}
+.spinner{width:20px;height:20px;border:2px solid #ccc;border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.logo-bar{
+  display:flex;align-items:center;gap:12px;margin-bottom:6px;
+}
+.logo-bar img{width:48px;height:48px;object-fit:contain;}
+.logo-bar-text{display:flex;flex-direction:column;}
+.logo-bar-name{font-size:18px;letter-spacing:2px;text-transform:uppercase;}
+.logo-bar-sub{font-size:10px;color:var(--text-faint);}
+
+.test-engine{
+  display:none;
+  width:100%;
+  min-height:100vh;
+  flex-direction:column;
+  background:var(--bg);
+}
+.test-engine.active{display:flex;}
+
+.test-toolbar{
+  background:var(--card-dark);
+  border-bottom:1px solid var(--border);
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  gap:0;
+  height:46px;
+  flex-shrink:0;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+
+.test-nav-group{display:flex;align-items:center;gap:4px;border-right:1px solid var(--border-light);padding-right:12px;margin-right:8px;}
+.test-tool-group{display:flex;align-items:center;gap:4px;border-right:1px solid var(--border-light);padding-right:12px;margin-right:8px;}
+
+.tb-btn{
+  width:34px;height:34px;
+  border:1px solid transparent;
+  background:transparent;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  color:var(--text);
+  border-radius:0;
+  position:relative;
+}
+.tb-btn:hover{background:var(--btn-hover);border-color:var(--border-light);}
+.tb-btn:active{background:var(--btn-active);}
+.tb-btn.active-tool{background:var(--btn-active);border-color:var(--border);}
+.tb-btn.flagged-btn{color:var(--flag);}
+
+.tb-label{font-size:9px;color:var(--text-faint);letter-spacing:0.5px;text-transform:uppercase;margin-right:4px;}
+
+.tb-end-btn{
+  margin-left:auto;
+  padding:6px 16px;
+  border:1px solid #a07070;
+  background:#d4b8b8;
+  cursor:pointer;
+  font-size:11px;
+  letter-spacing:0.5px;
+  font-family:Georgia,serif;
+}
+.tb-end-btn:hover{background:#c8a8a8;}
+
+.test-question-counter{
+  font-size:10px;color:var(--text-faint);
+  margin-left:8px;white-space:nowrap;
+}
+
+.test-body{
+  flex:1;
+  display:flex;
+  overflow:hidden;
+}
+
+.test-main{
+  flex:1;
+  padding:30px 40px;
+  overflow-y:auto;
+}
+
+.question-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:24px 28px;
+  max-width:700px;
+  margin:0 auto;
+}
+
+.question-meta{
+  font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);
+  margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.question-flag-badge{
+  font-size:9px;color:var(--flag);border:1px solid var(--flag);padding:1px 6px;display:none;
+}
+.question-flag-badge.visible{display:inline;}
+
+.question-text{font-size:14px;line-height:1.8;margin-bottom:20px;color:var(--text);}
+
+.choices{display:flex;flex-direction:column;gap:8px;}
+.choice{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px;
+  border:1px solid var(--border-light);
+  background:var(--card);
+  cursor:pointer;
+  transition:background 0.1s;
+}
+.choice:hover{background:var(--btn-hover);}
+.choice.selected{background:#ddd8b0;border-color:var(--accent);}
+.choice-letter{
+  width:20px;height:20px;flex-shrink:0;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:bold;color:var(--text-mid);
+  background:var(--card-dark);
+}
+.choice.selected .choice-letter{background:var(--accent);color:#f0ecce;border-color:#6a6455;}
+.choice-text{font-size:12px;line-height:1.6;padding-top:2px;}
+
+.highlighted-text{background:var(--highlight-color);cursor:default;}
+
+.test-sidebar{
+  width:220px;
+  flex-shrink:0;
+  background:var(--card);
+  border-left:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+}
+
+.sidebar-section{padding:12px 14px;border-bottom:1px solid var(--border-light);}
+.sidebar-section-title{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px;}
+
+.q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;}
+.q-dot{
+  aspect-ratio:1;
+  border:1px solid var(--border-light);
+  background:var(--card-dark);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--text-mid);cursor:pointer;
+}
+.q-dot:hover{background:var(--btn-hover);}
+.q-dot.current{background:var(--accent);color:#f0ecce;border-color:#6a6455;}
+.q-dot.answered{background:#c8d4b0;border-color:#a0b080;}
+.q-dot.flagged{border-color:var(--flag);color:var(--flag);}
+.q-dot.answered.flagged{background:#d8c890;}
+
+.mask-window{
+  display:none;
+  position:fixed;
+  background:#e8e4c8;
+  border:1px solid var(--border);
+  box-shadow:3px 3px 0 #aaa;
+  z-index:500;
+  overflow:hidden;
+  min-width:120px;min-height:80px;
+  width:320px;height:180px;
+}
+.mask-window.visible{display:block;}
+.mask-titlebar{
+  background:var(--card-dark);
+  border-bottom:1px solid var(--border-light);
+  padding:5px 8px;
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:move;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);
+}
+.mask-close{
+  width:14px;height:14px;border:1px solid var(--border-dark);background:var(--btn-bg);
+  display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;
+}
+.mask-close:hover{background:var(--btn-hover);}
+.mask-body{
+  background:#1a1a1a;
+  position:absolute;
+  inset:26px 0 14px 0;
+  display:flex;align-items:center;justify-content:center;
+  color:#555;font-size:10px;
+}
+.mask-resize{
+  position:absolute;bottom:0;right:0;width:14px;height:14px;
+  cursor:se-resize;background:var(--card-dark);border-top:1px solid var(--border-light);border-left:1px solid var(--border-light);
+}
+
+.notepad-window{
+  display:none;
+  position:fixed;
+  background:var(--card);
+  border:1px solid var(--border);
+  box-shadow:3px 3px 0 #aaa;
+  z-index:500;
+  width:300px;height:240px;
+  min-width:200px;min-height:140px;
+}
+.notepad-window.visible{display:flex;flex-direction:column;}
+.notepad-titlebar{
+  background:var(--card-dark);
+  border-bottom:1px solid var(--border-light);
+  padding:5px 8px;
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:move;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);
+  flex-shrink:0;
+}
+.notepad-body{flex:1;display:flex;flex-direction:column;}
+.notepad-textarea{
+  flex:1;border:none;padding:10px;background:var(--input-bg);
+  font-size:11px;font-family:Georgia,serif;color:var(--text);resize:none;outline:none;
+}
+.notepad-resize{
+  position:absolute;bottom:0;right:0;width:14px;height:14px;
+  cursor:se-resize;background:var(--card-dark);border-top:1px solid var(--border-light);border-left:1px solid var(--border-light);
+}
+
+.help-modal{
+  display:none;
+  position:fixed;inset:0;background:rgba(0,0,0,0.55);
+  z-index:600;align-items:center;justify-content:center;
+}
+.help-modal.visible{display:flex;}
+.help-box{
+  background:var(--card);border:1px solid var(--border);
+  width:clamp(300px,50vw,560px);
+  box-shadow:4px 4px 0 #aaa8a0;
+  display:flex;flex-direction:column;
+}
+.help-header{
+  background:var(--card-dark);border-bottom:1px solid var(--border-light);
+  padding:8px 12px;display:flex;align-items:center;justify-content:space-between;
+}
+.help-header-title{font-size:11px;font-weight:bold;letter-spacing:0.5px;}
+.help-body{padding:18px 20px;display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto;}
+.help-row{display:flex;gap:10px;font-size:11px;padding-bottom:8px;border-bottom:1px solid #e8e4d0;}
+.help-row:last-child{border-bottom:none;}
+.help-icon{font-size:16px;width:24px;flex-shrink:0;text-align:center;}
+.help-desc{color:var(--text-mid);line-height:1.6;}
+.help-desc strong{color:var(--text);display:block;margin-bottom:2px;}
+
+.review-modal{
+  display:none;
+  position:fixed;inset:0;background:rgba(0,0,0,0.55);
+  z-index:600;align-items:center;justify-content:center;
+}
+.review-modal.visible{display:flex;}
+.review-box{
+  background:var(--card);border:1px solid var(--border);
+  width:clamp(300px,55vw,640px);
+  box-shadow:4px 4px 0 #aaa8a0;
+  display:flex;flex-direction:column;
+  max-height:85vh;
+}
+.review-header{
+  background:var(--card-dark);border-bottom:1px solid var(--border-light);
+  padding:8px 12px;display:flex;align-items:center;justify-content:space-between;
+}
+.review-header-title{font-size:11px;font-weight:bold;letter-spacing:0.5px;}
+.review-body{padding:18px 20px;overflow-y:auto;flex:1;}
+.review-section-title{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px;}
+.review-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;border:1px solid var(--border-light);margin-bottom:4px;font-size:11px;
+}
+.review-item.unanswered{border-color:#c0a0a0;background:#f8f0f0;}
+.review-item.flagged{border-color:var(--flag);background:#f8f4e8;}
+.review-item .go-link{font-size:10px;color:var(--accent);cursor:pointer;text-decoration:underline;}
+.review-footer{border-top:1px solid var(--border-light);padding:12px 20px;display:flex;justify-content:flex-end;gap:10px;}
+
+.admin-nav{
+  display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0;flex-shrink:0;
+}
+.admin-nav-btn{
+  padding:10px 18px;font-size:11px;letter-spacing:0.5px;
+  border:none;border-right:1px solid var(--border-light);background:var(--card-dark);
+  cursor:pointer;font-family:Georgia,serif;color:var(--text-mid);
+}
+.admin-nav-btn:hover{background:var(--btn-hover);}
+.admin-nav-btn.active{background:var(--card);color:var(--text);border-bottom:2px solid var(--accent);font-weight:bold;}
+
+.admin-tab{display:none;padding:20px 24px;overflow-y:auto;flex:1;}
+.admin-tab.active{display:block;}
+
+.table{width:100%;border-collapse:collapse;font-size:11px;}
+.table th{background:var(--card-dark);border:1px solid var(--border-light);padding:8px 10px;text-align:left;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);}
+.table td{border:1px solid var(--border-light);padding:8px 10px;vertical-align:top;}
+.table tr:hover td{background:rgba(0,0,0,0.02);}
+
+.tag{display:inline-block;padding:2px 6px;font-size:9px;border:1px solid var(--border-light);background:var(--card-dark);margin:1px;}
+
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);
+  z-index:700;align-items:center;justify-content:center;
+}
+.modal-overlay.visible{display:flex;}
+.modal-box{
+  background:var(--card);border:1px solid var(--border);
+  width:clamp(300px,60vw,680px);
+  box-shadow:4px 4px 0 #aaa8a0;
+  display:flex;flex-direction:column;
+  max-height:90vh;
+}
+.modal-header{
+  background:var(--card-dark);border-bottom:1px solid var(--border-light);
+  padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.modal-header-title{font-size:11px;font-weight:bold;letter-spacing:0.5px;}
+.modal-body{padding:20px 22px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;}
+.modal-footer{border-top:1px solid var(--border-light);padding:12px 20px;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;}
+
+.q-editor{
+  border:1px solid var(--border-light);padding:14px;
+  margin-bottom:10px;background:rgba(0,0,0,0.01);
+  position:relative;
+}
+.q-editor-num{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px;}
+.q-editor .remove-q{position:absolute;top:10px;right:10px;font-size:10px;color:var(--danger);cursor:pointer;background:none;border:none;font-family:Georgia,serif;}
+
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer;}
+.checkbox-row input[type=checkbox]{cursor:pointer;width:13px;height:13px;}
+
+.inline-error{font-size:10px;color:var(--danger);margin-top:3px;}
+
+.submit-result{
+  display:none;
+  flex:1;align-items:center;justify-content:center;padding:40px;
+}
+.submit-result.visible{display:flex;}
+.result-card{
+  background:var(--card);border:1px solid var(--border);
+  box-shadow:4px 4px 0 #aaa8a0;
+  padding:40px 48px;
+  text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.result-score{font-size:64px;color:var(--accent);font-family:monospace;letter-spacing:4px;}
+.result-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-faint);}
+.result-name{font-size:16px;letter-spacing:1px;}
+.result-detail{font-size:11px;color:var(--text-mid);line-height:1.8;max-width:360px;}
+
+.tooltip{
+  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#333;color:#eee;font-size:9px;padding:3px 7px;white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:200;
+  font-family:Georgia,serif;
+}
+.tb-btn:hover .tooltip{opacity:1;}
+
+@media(max-width:640px){
+  .card{width:96vw;margin:12px 0;}
+  .test-sidebar{display:none;}
+  .test-main{padding:16px;}
+  .question-card{padding:16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="card" style="max-width:420px;">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">ARC Base</div>
+        <div class="card-header-sub">Secure Testing Portal</div>
+      </div>
+      <img src="lg.png" alt="" style="width:40px;height:40px;object-fit:contain;" onerror="this.style.display='none'"/>
+    </div>
+    <div class="card-body">
+      <div class="field-group">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="login-user" autocomplete="username" placeholder="Enter username"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="login-pass" autocomplete="current-password" placeholder="Enter password"/>
+        </div>
+      </div>
+      <div class="error-msg" id="login-error"></div>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PROFILE CONFIRM ═══════════════════ -->
+<div id="screen-profile" class="screen">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Confirm Your Information</div>
+        <div class="card-header-sub">Verify details before proceeding</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-box" id="profile-box">
+        <div class="info-box-title">Account Information</div>
+        <div class="info-row"><span class="info-label">Full Name</span><span class="info-value" id="pf-name"></span></div>
+        <div class="info-row"><span class="info-label">Username</span><span class="info-value" id="pf-user"></span></div>
+        <div class="info-row"><span class="info-label">Annotation</span><span class="info-value" id="pf-annotation"></span></div>
+      </div>
+      <div class="conduct-box">
+        <div class="conduct-title">Available Tests</div>
+        <div id="pf-tests" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;"></div>
+      </div>
+      <div class="field" style="margin-bottom:4px;">
+        <label>Select Test to Begin</label>
+        <select id="pf-test-select"></select>
+      </div>
+      <p style="font-size:10px;color:var(--text-faint);margin-top:6px;">
+        If any information above is incorrect, contact your system administrator before proceeding.
+      </p>
+    </div>
+    <div class="card-footer">
+      <button class="btn" onclick="doLogout()">Not Me</button>
+      <button class="btn btn-primary" onclick="goToInstructions()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ INSTRUCTIONS ═══════════════════ -->
+<div id="screen-instructions" class="screen">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-header-title">Before You Begin</div>
+        <div class="card-header-sub" id="inst-test-name"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="conduct-box">
+        <div class="conduct-title">Code of Conduct</div>
+        <p class="conduct-body">
+          By proceeding, you acknowledge that all content is strictly confidential and protected under the Copyright Act of 1976 (Title 17, U.S. Code). Unauthorized reproduction, capture, or distribution of any testing material is strictly prohibited and may result in immediate removal, test invalidation, and civil penalties ranging from $750 to $30,000 per infringed work.
+        </p>
+      </div>
+      <div class="conduct-box">
+        <div class="conduct-title">Test Instructions</div>
+        <p class="conduct-body">
+          Read each question carefully before selecting your answer. You may navigate freely between questions using the arrow buttons in the toolbar. All questions must be answered before submitting. You will be shown any unanswered or flagged questions before final submission.
+        </p>
+      </div>
+      <div class="conduct-box">
+        <div class="conduct-title">Using the Toolbar</div>
+        <p class="conduct-body">
+          <strong>&#x2190; / &#x2192;</strong> — Navigate between questions.<br/>
+          <strong>&#x1F58A; Highlight</strong> — Click to activate, then select text to highlight it yellow.<br/>
+          <strong>&#x25A0; Mask</strong> — Opens a draggable black panel to cover content you have already read.<br/>
+          <strong>&#x1F5D2; Notepad</strong> — Opens a scratch notepad for working through problems. Notes are not saved.<br/>
+          <strong>&#x2691; Flag</strong> — Marks the current question for review. Flagged questions appear in the end-test summary.<br/>
+          <strong>&#x3F; Help</strong> — Opens this reference at any time.
+        </p>
+      </div>
+      <div class="conduct-box">
+        <div class="conduct-title">Unauthorized Exit</div>
+        <p class="conduct-body">
+          Exiting full screen without authorization will trigger a 20-minute access suspension. Personnel will be notified. Do not attempt to open other applications, developer tools, or browser menus during the test.
+        </p>
+      </div>
+    </div>
+    <div class="card-footer">
+      <button class="btn" onclick="showScreen('screen-profile')">Back</button>
+      <button class="btn btn-primary" onclick="beginTest()">Begin Test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TEST ENGINE ═══════════════════ -->
+<div id="screen-test" class="test-engine">
+
+  <div class="test-toolbar">
+    <div class="test-nav-group">
+      <button class="tb-btn" id="btn-prev" onclick="navigate(-1)" title="Previous">
+        &#x2190;<span class="tooltip">Previous</span>
+      </button>
+      <button class="tb-btn" id="btn-next" onclick="navigate(1)" title="Next">
+        &#x2192;<span class="tooltip">Next</span>
+      </button>
+      <span class="test-question-counter" id="q-counter">1 / 1</span>
+    </div>
+
+    <div class="test-tool-group">
+      <button class="tb-btn" id="tool-highlight" onclick="toggleTool('highlight')" title="Highlight">
+        &#x1F58A;<span class="tooltip">Highlight</span>
+      </button>
+      <button class="tb-btn" id="tool-mask" onclick="toggleMask()" title="Mask">
+        &#x25A0;<span class="tooltip">Mask</span>
+      </button>
+      <button class="tb-btn" id="tool-notepad" onclick="toggleNotepad()" title="Notepad">
+        &#x1F5D2;<span class="tooltip">Notepad</span>
+      </button>
+      <button class="tb-btn" id="tool-flag" onclick="toggleFlag()" title="Flag Question">
+        &#x2691;<span class="tooltip">Flag</span>
+      </button>
+      <button class="tb-btn" onclick="openHelp()" title="Help">
+        &#x3F;<span class="tooltip">Help</span>
+      </button>
+    </div>
+
+    <button class="tb-end-btn" onclick="openReview()">End Test</button>
+  </div>
+
+  <div class="test-body">
+    <div class="test-main" id="test-main">
+      <div class="question-card" id="question-card">
+        <div class="question-meta">
+          <span id="q-num-label">Question 1</span>
+          <span class="question-flag-badge" id="q-flag-badge">&#x2691; Flagged</span>
+        </div>
+        <div class="question-text" id="q-text"></div>
+        <div class="choices" id="q-choices"></div>
+      </div>
+    </div>
+
+    <div class="test-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Questions</div>
+        <div class="q-grid" id="q-grid"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Legend</div>
+        <div style="font-size:10px;color:var(--text-faint);display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;background:var(--card-dark);border:1px solid var(--border-light);"></div> Not Answered</div>
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;background:#c8d4b0;border:1px solid #a0b080;"></div> Answered</div>
+          <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;background:var(--card-dark);border:1px solid var(--flag);"></div> Flagged</div>
+        </div>
+      </div>
+      <div class="sidebar-section" style="margin-top:auto;">
+        <div class="sidebar-section-title">Test Info</div>
+        <div style="font-size:10px;color:var(--text-mid);line-height:1.8;">
+          <div id="sb-name"></div>
+          <div id="sb-test"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-result" id="submit-result">
+    <div class="result-card">
+      <div class="result-label">Test Complete</div>
+      <div class="result-name" id="res-name"></div>
+      <div class="result-score" id="res-score"></div>
+      <div class="result-label" id="res-pct"></div>
+      <hr style="width:200px;border-color:var(--border-light);"/>
+      <div class="result-detail" id="res-detail"></div>
+      <button class="btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ADMIN ═══════════════════ -->
+<div id="screen-admin" class="screen" style="align-items:stretch;min-height:100vh;padding:0;">
+  <div style="background:var(--card);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img src="lg.png" alt="" style="width:32px;height:32px;object-fit:contain;" onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-size:13px;letter-spacing:1px;text-transform:uppercase;">ARC Base Admin</div>
+        <div style="font-size:10px;color:var(--text-faint);" id="admin-logged-as"></div>
+      </div>
+    </div>
+    <button class="btn btn-sm" onclick="doLogout()">Sign Out</button>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div class="admin-nav">
+      <button class="admin-nav-btn active" onclick="switchAdminTab('tab-users',this)">Users</button>
+      <button class="admin-nav-btn" onclick="switchAdminTab('tab-tests',this)">Tests</button>
+      <button class="admin-nav-btn" onclick="switchAdminTab('tab-grades',this)">Grades</button>
+    </div>
+
+    <!-- USERS TAB -->
+    <div class="admin-tab active" id="tab-users">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:11px;color:var(--text-faint);">Manage user accounts</div>
+        <button class="btn btn-sm btn-primary" onclick="openUserModal()">+ New User</button>
+      </div>
+      <div id="users-table-wrap"><div class="spinner-wrap"><div class="spinner"></div>Loading...</div></div>
+    </div>
+
+    <!-- TESTS TAB -->
+    <div class="admin-tab" id="tab-tests">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:11px;color:var(--text-faint);">Manage tests and questions</div>
+        <button class="btn btn-sm btn-primary" onclick="openTestModal()">+ New Test</button>
+      </div>
+      <div id="tests-table-wrap"><div class="spinner-wrap"><div class="spinner"></div>Loading...</div></div>
+    </div>
+
+    <!-- GRADES TAB -->
+    <div class="admin-tab" id="tab-grades">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:11px;color:var(--text-faint);">View submitted test grades</div>
+        <button class="btn btn-sm" onclick="loadGrades()">&#x21BA; Refresh</button>
+      </div>
+      <div id="grades-table-wrap"><div class="spinner-wrap"><div class="spinner"></div>Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MASK WINDOW ═══════════════════ -->
+<div class="mask-window" id="mask-window">
+  <div class="mask-titlebar" id="mask-titlebar">
+    <span>Mask</span>
+    <div class="mask-close" onclick="closeMask()">&#x2715;</div>
+  </div>
+  <div class="mask-body"></div>
+  <div class="mask-resize" id="mask-resize"></div>
+</div>
+
+<!-- ═══════════════════ NOTEPAD WINDOW ═══════════════════ -->
+<div class="notepad-window" id="notepad-window">
+  <div class="notepad-titlebar" id="notepad-titlebar">
+    <span>Notepad</span>
+    <div class="mask-close" onclick="closeNotepad()">&#x2715;</div>
+  </div>
+  <div class="notepad-body">
+    <textarea class="notepad-textarea" id="notepad-text" placeholder="Scratch notes (not saved)..."></textarea>
+  </div>
+  <div class="notepad-resize" id="notepad-resize"></div>
+</div>
+
+<!-- ═══════════════════ HELP MODAL ═══════════════════ -->
+<div class="help-modal" id="help-modal">
+  <div class="help-box">
+    <div class="help-header">
+      <span class="help-header-title">Tool Reference</span>
+      <button class="btn btn-sm" onclick="closeHelp()">&#x2715;</button>
+    </div>
+    <div class="help-body">
+      <div class="help-row"><div class="help-icon">&#x2190;&#x2192;</div><div class="help-desc"><strong>Navigate Questions</strong>Use the arrow buttons to move between questions. You can also click any number in the sidebar.</div></div>
+      <div class="help-row"><div class="help-icon">&#x1F58A;</div><div class="help-desc"><strong>Highlight</strong>Activate then select any text in the question to highlight it yellow. Click the tool again to deactivate.</div></div>
+      <div class="help-row"><div class="help-icon">&#x25A0;</div><div class="help-desc"><strong>Mask</strong>A black draggable panel to cover text you've already read. Resize from the bottom-right corner.</div></div>
+      <div class="help-row"><div class="help-icon">&#x1F5D2;</div><div class="help-desc"><strong>Notepad</strong>A floating scratch pad. Notes are session-only and not submitted with your test.</div></div>
+      <div class="help-row"><div class="help-icon">&#x2691;</div><div class="help-desc"><strong>Flag</strong>Marks the current question for review. Flagged questions are highlighted in the End Test summary.</div></div>
+      <div class="help-row"><div class="help-icon">&#x2716;</div><div class="help-desc"><strong>End Test</strong>Shows a review of unanswered and flagged questions before final submission.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ REVIEW MODAL ═══════════════════ -->
+<div class="review-modal" id="review-modal">
+  <div class="review-box">
+    <div class="review-header">
+      <span class="review-header-title">Test Review</span>
+      <button class="btn btn-sm" onclick="closeReview()">&#x2715;</button>
+    </div>
+    <div class="review-body">
+      <div id="review-content"></div>
+    </div>
+    <div class="review-footer">
+      <button class="btn" onclick="closeReview()">Return to Test</button>
+      <button class="btn btn-primary" id="btn-submit-test" onclick="submitTest()">Submit Test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ USER MODAL (admin) ═══════════════════ -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-header-title" id="user-modal-title">New User</span>
+      <button class="btn btn-sm" onclick="closeModal('user-modal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group" style="margin-bottom:0;">
+        <div class="field"><label>Full Name</label><input type="text" id="um-fullname" placeholder="John Doe"/></div>
+        <div class="field"><label>Username</label><input type="text" id="um-user" placeholder="jdoe"/></div>
+        <div class="field"><label>Password</label><input type="text" id="um-pass" placeholder="temporary password"/></div>
+        <div class="field"><label>Annotation (optional)</label><input type="text" id="um-annotation" placeholder="e.g. Extended time, Section 504"/></div>
+        <div class="field">
+          <label>Available Tests</label>
+          <div id="um-tests-list" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;"></div>
+          <div class="inline-error" id="um-error"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('user-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TEST MODAL (admin) ═══════════════════ -->
+<div class="modal-overlay" id="test-modal">
+  <div class="modal-box" style="width:clamp(340px,70vw,800px);">
+    <div class="modal-header">
+      <span class="modal-header-title" id="test-modal-title">New Test</span>
+      <button class="btn btn-sm" onclick="closeModal('test-modal')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group" style="margin-bottom:0;">
+        <div class="field"><label>Test Name</label><input type="text" id="tm-name" placeholder="Unit 1 Assessment"/></div>
+        <div class="field"><label>Description (optional)</label><input type="text" id="tm-desc" placeholder="Brief description"/></div>
+      </div>
+      <hr class="divider"/>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-faint);">Questions</div>
+        <button class="btn btn-sm" onclick="addQuestion()">+ Add Question</button>
+      </div>
+      <div id="questions-editor"></div>
+      <div class="inline-error" id="tm-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('test-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTest()">Save Test</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const _cfg = {
+  apiKey: atob("QUl6YVN5Qm1HcVZfSkh IMG TAF02T0ltVjIyd3lZNTZ6ZjNQMk5IWkR1MA==").replace(/\s/g,''),
+  authDomain: "arc-insight.firebaseapp.com",
+  projectId: "arc-insight",
+  storageBucket: "arc-insight.firebasestorage.app",
+  messagingSenderId: "432547585954",
+  appId: "1:432547585954:web:4ef81be2b1376089901cfb",
+  measurementId: "G-VSZXXRDQYE"
+};
+
+const app = initializeApp(_cfg);
+const db  = getFirestore(app);
+
+window._db = db;
+window._col = { users:'Users', grades:'grades', tests:'Tests' };
+
+let _user       = null;
+let _testData   = null;
+let _qIdx       = 0;
+let _answers    = {};
+let _flags      = new Set();
+let _highlights = {};
+let _activeTool = null;
+let _editUserId = null;
+let _editTestId = null;
+let _allTests   = [];
+
+const ADMIN_USERS = ['admin'];
+
+window.showScreen = function(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.test-engine').forEach(s => s.classList.remove('active'));
+};
+
+function showTest() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-test').classList.add('active');
+}
+
+window.doLogin = async function() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value.trim();
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  if (!u || !p) { err.textContent = 'Please enter username and password.'; return; }
+
+  try {
+    const q = query(collection(db, window._col.users), where('User','==',u));
+    const snap = await getDocs(q);
+    if (snap.empty) { err.textContent = 'User not found.'; return; }
+    const docSnap = snap.docs[0];
+    const data = docSnap.data();
+    if (data.Password !== p) { err.textContent = 'Incorrect password.'; return; }
+    _user = { id: docSnap.id, ...data };
+
+    if (ADMIN_USERS.includes(u)) {
+      showScreen('screen-admin');
+      document.getElementById('admin-logged-as').textContent = 'Signed in as ' + (_user.FullName || u);
+      loadAdminData();
+      return;
+    }
+
+    document.getElementById('pf-name').textContent       = data.FullName || '—';
+    document.getElementById('pf-user').textContent       = data.User;
+    document.getElementById('pf-annotation').textContent = data.Annotation || 'None';
+    const tests = Array.isArray(data.CurrentTests) ? data.CurrentTests : [];
+    const tWrap = document.getElementById('pf-tests');
+    const tSel  = document.getElementById('pf-test-select');
+    tWrap.innerHTML = '';
+    tSel.innerHTML  = '';
+    if (tests.length === 0) {
+      tWrap.innerHTML = '<span style="font-size:11px;color:var(--text-faint);">No tests currently assigned.</span>';
+      tSel.innerHTML  = '<option value="">No tests available</option>';
+    } else {
+      tests.forEach(t => {
+        const b = document.createElement('span');
+        b.className = 'badge';
+        b.textContent = t;
+        tWrap.appendChild(b);
+        const o = document.createElement('option');
+        o.value = t; o.textContent = t;
+        tSel.appendChild(o);
+      });
+    }
+    showScreen('screen-profile');
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+  }
+};
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') window.doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+
+window.doLogout = function() {
+  _user = null; _testData = null; _qIdx = 0;
+  _answers = {}; _flags = new Set(); _highlights = {};
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('submit-result').classList.remove('visible');
+  document.getElementById('test-main').style.display = '';
+  showScreen('screen-login');
+};
+
+window.goToInstructions = function() {
+  const sel = document.getElementById('pf-test-select').value;
+  if (!sel) { alert('No test selected.'); return; }
+  document.getElementById('inst-test-name').textContent = sel;
+  showScreen('screen-instructions');
+};
+
+window.beginTest = async function() {
+  const testName = document.getElementById('pf-test-select').value;
+  try {
+    const q = query(collection(db, window._col.tests), where('name','==',testName));
+    const snap = await getDocs(q);
+    if (snap.empty) { alert('Test data not found. Contact your administrator.'); return; }
+    _testData = { id: snap.docs[0].id, ...snap.docs[0].data() };
+    _qIdx = 0; _answers = {}; _flags = new Set(); _highlights = {};
+    document.getElementById('sb-name').textContent = _user.FullName || _user.User;
+    document.getElementById('sb-test').textContent = _testData.name;
+    buildQGrid();
+    renderQuestion();
+    showTest();
+  } catch(e) {
+    alert('Error loading test: ' + e.message);
+  }
+};
+
+function buildQGrid() {
+  const grid = document.getElementById('q-grid');
+  grid.innerHTML = '';
+  (_testData.questions || []).forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'q-dot';
+    d.textContent = i + 1;
+    d.id = 'qdot-' + i;
+    d.onclick = () => goToQ(i);
+    grid.appendChild(d);
+  });
+  updateGrid();
+}
+
+function updateGrid() {
+  (_testData.questions || []).forEach((_, i) => {
+    const d = document.getElementById('qdot-' + i);
+    if (!d) return;
+    d.className = 'q-dot';
+    if (i === _qIdx) d.classList.add('current');
+    if (_answers[i] !== undefined) d.classList.add('answered');
+    if (_flags.has(i)) d.classList.add('flagged');
+  });
+}
+
+function renderQuestion() {
+  const qs = _testData.questions || [];
+  if (!qs.length) return;
+  const q = qs[_qIdx];
+  document.getElementById('q-num-label').textContent = 'Question ' + (_qIdx + 1);
+  document.getElementById('q-counter').textContent   = (_qIdx + 1) + ' / ' + qs.length;
+  const fb = document.getElementById('q-flag-badge');
+  if (_flags.has(_qIdx)) { fb.classList.add('visible'); document.getElementById('tool-flag').classList.add('flagged-btn'); }
+  else { fb.classList.remove('visible'); document.getElementById('tool-flag').classList.remove('flagged-btn'); }
+  document.getElementById('btn-prev').style.opacity = _qIdx === 0 ? '0.4' : '1';
+  document.getElementById('btn-next').style.opacity = _qIdx === qs.length - 1 ? '0.4' : '1';
+
+  const qt = document.getElementById('q-text');
+  qt.innerHTML = '';
+  const textNode = document.createTextNode(q.text || '');
+  qt.appendChild(textNode);
+
+  const ch = document.getElementById('q-choices');
+  ch.innerHTML = '';
+  const letters = ['A','B','C','D','E'];
+  (q.choices || []).forEach((c, ci) => {
+    const div = document.createElement('div');
+    div.className = 'choice' + (_answers[_qIdx] === ci ? ' selected' : '');
+    div.innerHTML = `<div class="choice-letter">${letters[ci]}</div><div class="choice-text">${c}</div>`;
+    div.onclick = () => selectAnswer(ci);
+    ch.appendChild(div);
+  });
+
+  applyHighlights();
+  updateGrid();
+}
+
+function selectAnswer(ci) {
+  _answers[_qIdx] = ci;
+  renderQuestion();
+}
+
+window.navigate = function(dir) {
+  const qs = _testData.questions || [];
+  const next = _qIdx + dir;
+  if (next < 0 || next >= qs.length) return;
+  _qIdx = next;
+  renderQuestion();
+};
+
+window.goToQ = function(i) {
+  _qIdx = i;
+  renderQuestion();
+  closeReview();
+};
+
+window.toggleFlag = function() {
+  if (_flags.has(_qIdx)) _flags.delete(_qIdx);
+  else _flags.add(_qIdx);
+  renderQuestion();
+};
+
+window.toggleTool = function(name) {
+  _activeTool = _activeTool === name ? null : name;
+  document.getElementById('tool-highlight').classList.toggle('active-tool', _activeTool === 'highlight');
+  document.body.style.cursor = _activeTool === 'highlight' ? 'text' : '';
+};
+
+document.getElementById('test-main').addEventListener('mouseup', function(e) {
+  if (_activeTool !== 'highlight') return;
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const qt = document.getElementById('q-text');
+  if (!qt.contains(range.commonAncestorContainer)) { sel.removeAllRanges(); return; }
+  const mark = document.createElement('mark');
+  mark.style.background = 'var(--highlight-color)';
+  mark.style.cursor = 'default';
+  try { range.surroundContents(mark); } catch(err) {}
+  sel.removeAllRanges();
+  saveHighlights();
+});
+
+function saveHighlights() {
+  _highlights[_qIdx] = document.getElementById('q-text').innerHTML;
+}
+
+function applyHighlights() {
+  if (_highlights[_qIdx]) {
+    document.getElementById('q-text').innerHTML = _highlights[_qIdx];
+  }
+}
+
+window.toggleMask = function() {
+  const w = document.getElementById('mask-window');
+  w.classList.toggle('visible');
+  if (w.classList.contains('visible') && !w._positioned) {
+    w.style.top = '80px'; w.style.left = '60px'; w._positioned = true;
+  }
+};
+
+window.closeMask = function() {
+  document.getElementById('mask-window').classList.remove('visible');
+};
+
+window.toggleNotepad = function() {
+  const w = document.getElementById('notepad-window');
+  w.classList.toggle('visible');
+  if (w.classList.contains('visible') && !w._positioned) {
+    w.style.top = '80px'; w.style.right = '20px'; w._positioned = true;
+  }
+};
+
+window.closeNotepad = function() {
+  document.getElementById('notepad-window').classList.remove('visible');
+};
+
+window.openHelp  = function() { document.getElementById('help-modal').classList.add('visible'); };
+window.closeHelp = function() { document.getElementById('help-modal').classList.remove('visible'); };
+
+window.openReview = function() {
+  const qs = _testData.questions || [];
+  const unanswered = qs.map((_,i) => i).filter(i => _answers[i] === undefined);
+  const flagged    = [..._flags];
+  let html = '';
+  if (unanswered.length === 0 && flagged.length === 0) {
+    html = '<p style="font-size:11px;color:var(--text-mid);margin-bottom:12px;">All questions answered and none flagged. You are ready to submit.</p>';
+  } else {
+    if (unanswered.length > 0) {
+      html += '<div class="review-section-title" style="margin-bottom:6px;">Unanswered (' + unanswered.length + ')</div>';
+      unanswered.forEach(i => {
+        html += `<div class="review-item unanswered"><span>Question ${i+1}</span><span class="go-link" onclick="goToQ(${i})">Go to question</span></div>`;
+      });
+      html += '<div style="margin-bottom:14px;"></div>';
+    }
+    if (flagged.length > 0) {
+      html += '<div class="review-section-title" style="margin-bottom:6px;">Flagged (' + flagged.length + ')</div>';
+      flagged.forEach(i => {
+        html += `<div class="review-item flagged"><span>Question ${i+1} &#x2691;</span><span class="go-link" onclick="goToQ(${i})">Go to question</span></div>`;
+      });
+    }
+  }
+  const submitBtn = document.getElementById('btn-submit-test');
+  submitBtn.disabled = unanswered.length > 0;
+  submitBtn.title    = unanswered.length > 0 ? 'Answer all questions before submitting' : '';
+  submitBtn.style.opacity = unanswered.length > 0 ? '0.5' : '1';
+  document.getElementById('review-content').innerHTML = html;
+  document.getElementById('review-modal').classList.add('visible');
+};
+
+window.closeReview = function() {
+  document.getElementById('review-modal').classList.remove('visible');
+};
+
+window.submitTest = async function() {
+  if (!_testData || !_user) return;
+  closeReview();
+  const qs = _testData.questions || [];
+  let correct = 0;
+  qs.forEach((q, i) => {
+    if (_answers[i] === q.answer) correct++;
+  });
+  const total   = qs.length;
+  const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const grade   = pct >= 90 ? 'A' : pct >= 80 ? 'B' : pct >= 70 ? 'C' : pct >= 60 ? 'D' : 'F';
+  const now     = new Date();
+  try {
+    await addDoc(collection(db, window._col.grades), {
+      name:       _user.FullName || _user.User,
+      username:   _user.User,
+      testName:   _testData.name,
+      score:      pct,
+      correct:    correct,
+      total:      total,
+      grade:      grade,
+      submittedAt: now.toISOString()
+    });
+  } catch(e) {
+    console.error('Grade save error:', e);
+  }
+  document.getElementById('test-main').style.display   = 'none';
+  document.querySelector('.test-sidebar').style.display = 'none';
+  document.getElementById('submit-result').classList.add('visible');
+  document.getElementById('res-name').textContent   = _user.FullName || _user.User;
+  document.getElementById('res-score').textContent  = pct + '%';
+  document.getElementById('res-pct').textContent    = correct + ' of ' + total + ' correct — Grade: ' + grade;
+  document.getElementById('res-detail').textContent = 'Your results for "' + _testData.name + '" have been submitted. You may now sign out.';
+};
+
+makeDraggable('mask-window',    'mask-titlebar');
+makeDraggable('notepad-window', 'notepad-titlebar');
+makeResizable('mask-window',    'mask-resize');
+makeResizable('notepad-window', 'notepad-resize');
+
+function makeDraggable(wId, hId) {
+  const win = document.getElementById(wId);
+  const handle = document.getElementById(hId);
+  let ox=0,oy=0,startX=0,startY=0;
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    startX = e.clientX; startY = e.clientY;
+    ox = win.offsetLeft; oy = win.offsetTop;
+    const onMove = ev => { win.style.left = (ox + ev.clientX - startX) + 'px'; win.style.top = (oy + ev.clientY - startY) + 'px'; };
+    const onUp   = ()  => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+function makeResizable(wId, rId) {
+  const win = document.getElementById(wId);
+  const handle = document.getElementById(rId);
+  let sw=0,sh=0,sx=0,sy=0;
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    sx = e.clientX; sy = e.clientY;
+    sw = win.offsetWidth; sh = win.offsetHeight;
+    const onMove = ev => {
+      win.style.width  = Math.max(150, sw + ev.clientX - sx) + 'px';
+      win.style.height = Math.max(100, sh + ev.clientY - sy) + 'px';
+    };
+    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+window.switchAdminTab = function(tabId, btn) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+  if (tabId === 'tab-grades') loadGrades();
+};
+
+async function loadAdminData() {
+  await Promise.all([loadUsers(), loadTests()]);
+}
+
+async function loadUsers() {
+  const wrap = document.getElementById('users-table-wrap');
+  wrap.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Loading...</div>';
+  try {
+    const snap = await getDocs(collection(db, window._col.users));
+    if (snap.empty) { wrap.innerHTML = '<p style="font-size:11px;color:var(--text-faint);">No users found.</p>'; return; }
+    let html = '<table class="table"><thead><tr><th>Full Name</th><th>Username</th><th>Annotation</th><th>Assigned Tests</th><th style="width:120px;"></th></tr></thead><tbody>';
+    snap.forEach(d => {
+      const u = d.data();
+      const tests = Array.isArray(u.CurrentTests) ? u.CurrentTests.map(t => `<span class="tag">${t}</span>`).join('') : '—';
+      html += `<tr>
+        <td>${u.FullName||'—'}</td>
+        <td>${u.User||'—'}</td>
+        <td>${u.Annotation||'—'}</td>
+        <td>${tests}</td>
+        <td style="display:flex;gap:4px;">
+          <button class="btn btn-sm" onclick="openUserModal('${d.id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteUser('${d.id}')">Del</button>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p style="color:var(--danger);font-size:11px;">Error: ' + e.message + '</p>';
+  }
+}
+
+window.loadGrades = async function() {
+  const wrap = document.getElementById('grades-table-wrap');
+  wrap.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Loading...</div>';
+  try {
+    const snap = await getDocs(collection(db, window._col.grades));
+    if (snap.empty) { wrap.innerHTML = '<p style="font-size:11px;color:var(--text-faint);">No grades submitted yet.</p>'; return; }
+    const rows = [];
+    snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+    rows.sort((a,b) => (b.submittedAt||'').localeCompare(a.submittedAt||''));
+    let html = '<table class="table"><thead><tr><th>Name</th><th>Username</th><th>Test</th><th>Score</th><th>Grade</th><th>Correct</th><th>Submitted</th></tr></thead><tbody>';
+    rows.forEach(r => {
+      const dt = r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—';
+      html += `<tr>
+        <td>${r.name||'—'}</td><td>${r.username||'—'}</td><td>${r.testName||'—'}</td>
+        <td>${r.score!=null?r.score+'%':'—'}</td><td><strong>${r.grade||'—'}</strong></td>
+        <td>${r.correct!=null?r.correct+'/'+r.total:'—'}</td><td style="font-size:10px;">${dt}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p style="color:var(--danger);font-size:11px;">Error: ' + e.message + '</p>';
+  }
+};
+
+async function loadTests() {
+  const wrap = document.getElementById('tests-table-wrap');
+  wrap.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div>Loading...</div>';
+  try {
+    const snap = await getDocs(collection(db, window._col.tests));
+    _allTests = [];
+    snap.forEach(d => _allTests.push({ id: d.id, ...d.data() }));
+    if (!_allTests.length) { wrap.innerHTML = '<p style="font-size:11px;color:var(--text-faint);">No tests created yet.</p>'; return; }
+    let html = '<table class="table"><thead><tr><th>Test Name</th><th>Description</th><th>Questions</th><th style="width:120px;"></th></tr></thead><tbody>';
+    _allTests.forEach(t => {
+      html += `<tr>
+        <td>${t.name||'—'}</td>
+        <td>${t.description||'—'}</td>
+        <td>${Array.isArray(t.questions)?t.questions.length:0}</td>
+        <td style="display:flex;gap:4px;">
+          <button class="btn btn-sm" onclick="openTestModal('${t.id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteTest('${t.id}')">Del</button>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p style="color:var(--danger);font-size:11px;">Error: ' + e.message + '</p>';
+  }
+}
+
+window.openUserModal = async function(uid) {
+  _editUserId = uid || null;
+  document.getElementById('user-modal-title').textContent = uid ? 'Edit User' : 'New User';
+  document.getElementById('um-fullname').value   = '';
+  document.getElementById('um-user').value       = '';
+  document.getElementById('um-pass').value       = '';
+  document.getElementById('um-annotation').value = '';
+  document.getElementById('um-error').textContent = '';
+  const testSnap = await getDocs(collection(db, window._col.tests));
+  const tests = [];
+  testSnap.forEach(d => tests.push({ id: d.id, name: d.data().name }));
+  let assigned = [];
+  if (uid) {
+    const dSnap = await getDoc(doc(db, window._col.users, uid));
+    if (dSnap.exists()) {
+      const d = dSnap.data();
+      document.getElementById('um-fullname').value   = d.FullName || '';
+      document.getElementById('um-user').value       = d.User || '';
+      document.getElementById('um-pass').value       = d.Password || '';
+      document.getElementById('um-annotation').value = d.Annotation || '';
+      assigned = Array.isArray(d.CurrentTests) ? d.CurrentTests : [];
+    }
+  }
+  const list = document.getElementById('um-tests-list');
+  list.innerHTML = '';
+  if (!tests.length) {
+    list.innerHTML = '<span style="font-size:10px;color:var(--text-faint);">No tests created yet.</span>';
+  } else {
+    tests.forEach(t => {
+      const row = document.createElement('label');
+      row.className = 'checkbox-row';
+      row.innerHTML = `<input type="checkbox" value="${t.name}" ${assigned.includes(t.name)?'checked':''}/> ${t.name}`;
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('user-modal').classList.add('visible');
+};
+
+window.saveUser = async function() {
+  const err  = document.getElementById('um-error');
+  const fn   = document.getElementById('um-fullname').value.trim();
+  const user = document.getElementById('um-user').value.trim();
+  const pass = document.getElementById('um-pass').value.trim();
+  const ann  = document.getElementById('um-annotation').value.trim();
+  if (!fn || !user || !pass) { err.textContent = 'Full name, username and password are required.'; return; }
+  const checks  = document.querySelectorAll('#um-tests-list input[type=checkbox]:checked');
+  const selTests = Array.from(checks).map(c => c.value);
+  const data = { FullName: fn, User: user, Password: pass, Annotation: ann, CurrentTests: selTests };
+  try {
+    if (_editUserId) {
+      await setDoc(doc(db, window._col.users, _editUserId), data);
+    } else {
+      const q = query(collection(db, window._col.users), where('User','==',user));
+      const snap = await getDocs(q);
+      if (!snap.empty) { err.textContent = 'Username already exists.'; return; }
+      await addDoc(collection(db, window._col.users), data);
+    }
+    closeModal('user-modal');
+    loadUsers();
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+  }
+};
+
+window.deleteUser = async function(uid) {
+  if (!confirm('Delete this user? This cannot be undone.')) return;
+  try { await deleteDoc(doc(db, window._col.users, uid)); loadUsers(); }
+  catch(e) { alert('Error: ' + e.message); }
+};
+
+window.openTestModal = async function(tid) {
+  _editTestId = tid || null;
+  document.getElementById('test-modal-title').textContent = tid ? 'Edit Test' : 'New Test';
+  document.getElementById('tm-name').value  = '';
+  document.getElementById('tm-desc').value  = '';
+  document.getElementById('tm-error').textContent = '';
+  document.getElementById('questions-editor').innerHTML = '';
+  if (tid) {
+    const dSnap = await getDoc(doc(db, window._col.tests, tid));
+    if (dSnap.exists()) {
+      const d = dSnap.data();
+      document.getElementById('tm-name').value = d.name || '';
+      document.getElementById('tm-desc').value = d.description || '';
+      (d.questions || []).forEach(q => addQuestion(q));
+    }
+  }
+  document.getElementById('test-modal').classList.add('visible');
+};
+
+let _qCount = 0;
+window.addQuestion = function(q) {
+  _qCount++;
+  const idx  = _qCount;
+  const ed   = document.getElementById('questions-editor');
+  const div  = document.createElement('div');
+  div.className = 'q-editor';
+  div.id = 'qed-' + idx;
+  const letters = ['A','B','C','D'];
+  const choiceFields = letters.map((l,i) => `
+    <div class="field" style="margin-bottom:6px;">
+      <label>${l}</label>
+      <input type="text" class="qed-choice" data-ci="${i}" placeholder="Choice ${l}" value="${(q&&q.choices&&q.choices[i])||''}"/>
+    </div>`).join('');
+  const answerOpts = letters.map((l,i) => `<option value="${i}" ${q&&q.answer===i?'selected':''}>${l}</option>`).join('');
+  div.innerHTML = `
+    <div class="q-editor-num">Question ${idx}</div>
+    <button class="remove-q" onclick="removeQuestion('qed-${idx}')">&#x2715; Remove</button>
+    <div class="field" style="margin-bottom:10px;">
+      <label>Question Text</label>
+      <textarea class="qed-text" placeholder="Enter question..." style="min-height:60px;">${(q&&q.text)||''}</textarea>
+    </div>
+    ${choiceFields}
+    <div class="field" style="margin-top:8px;">
+      <label>Correct Answer</label>
+      <select class="qed-answer" style="width:80px;">${answerOpts}</select>
+    </div>`;
+  ed.appendChild(div);
+};
+
+window.removeQuestion = function(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+};
+
+window.saveTest = async function() {
+  const err  = document.getElementById('tm-error');
+  const name = document.getElementById('tm-name').value.trim();
+  const desc = document.getElementById('tm-desc').value.trim();
+  if (!name) { err.textContent = 'Test name is required.'; return; }
+  const editors = document.querySelectorAll('.q-editor');
+  if (!editors.length) { err.textContent = 'Add at least one question.'; return; }
+  const questions = [];
+  let valid = true;
+  editors.forEach((ed, i) => {
+    const text    = ed.querySelector('.qed-text').value.trim();
+    const choices = Array.from(ed.querySelectorAll('.qed-choice')).map(c => c.value.trim());
+    const answer  = parseInt(ed.querySelector('.qed-answer').value);
+    if (!text || choices.some(c => !c)) { err.textContent = `Question ${i+1}: fill all fields and choices.`; valid = false; }
+    else questions.push({ text, choices, answer });
+  });
+  if (!valid) return;
+  try {
+    const data = { name, description: desc, questions };
+    if (_editTestId) {
+      await setDoc(doc(db, window._col.tests, _editTestId), data);
+    } else {
+      await addDoc(collection(db, window._col.tests), data);
+    }
+    closeModal('test-modal');
+    loadTests();
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+  }
+};
+
+window.deleteTest = async function(tid) {
+  if (!confirm('Delete this test? This cannot be undone.')) return;
+  try { await deleteDoc(doc(db, window._col.tests, tid)); loadTests(); }
+  catch(e) { alert('Error: ' + e.message); }
+};
+
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('visible');
+};
+</script>
+</body>
+</html>
