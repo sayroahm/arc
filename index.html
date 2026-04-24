@@ -19,46 +19,145 @@
       min-height: 100vh;
     }
 
-    .logo {
-      position: fixed;
-      top: 16px;
-      left: 16px;
-      width: 48px;
-      height: 48px;
-      object-fit: contain;
-    }
-
     .card {
       background-color: #e8e4c8;
       width: clamp(400px, 70vw, 1100px);
-      height: 100vh;
+      height: calc(100vh - 48px);
+      margin: 24px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: stretch;
+      position: relative;
+    }
+
+    .logo {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+    }
+
+    .card-top {
+      padding: 18px 24px 0 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .card-top .app-title {
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
+    .card-top .app-sub {
+      font-size: 11px;
+      color: #555;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #aaa;
+      margin: 12px 24px 0 24px;
+    }
+
+    .card-middle {
+      flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 18px;
+      gap: 10px;
+      padding: 24px;
+    }
+
+    .card-middle .desc-title {
+      font-size: 13px;
+      text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .card-middle .desc-body {
+      font-size: 12px;
+      color: #555;
+      text-align: center;
+      max-width: 420px;
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
     }
 
     .btn {
-      width: 180px;
+      width: 200px;
       padding: 10px 0;
       border: 1px solid #888;
       background: #e0dbb8;
       cursor: pointer;
-      font-size: 15px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
     }
 
-    .btn:hover {
-      background: #d6d0a8;
+    .btn:hover  { background: #d6d0a8; }
+    .btn:active { background: #cac49a; }
+
+    .btn-note {
+      font-size: 10px;
+      color: #777;
+      text-align: center;
+      margin-top: 3px;
     }
 
-    .btn:active {
-      background: #cac49a;
+    .instructions {
+      border-top: 1px solid #bbb;
+      margin: 0 24px 14px 24px;
+      padding-top: 12px;
+    }
+
+    .instructions p span {
+      display: block;
+      font-size: 11px;
+      color: #555;
+      line-height: 1.9;
+    }
+
+    .card-bottom {
+      border-top: 1px solid #aaa;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .card-bottom .copy {
+      font-size: 10px;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    .card-bottom .legal {
+      font-size: 10px;
+      color: #888;
+      text-align: right;
+      line-height: 1.7;
     }
 
     .loading-wrap {
+      flex: 1;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
       gap: 10px;
     }
@@ -73,19 +172,24 @@
       to { transform: rotate(360deg); }
     }
 
-    .loading-text {
-      font-size: 14px;
-    }
+    .loading-text { font-size: 13px; color: #555; }
 
-    #content { display: none; }
+    #content { display: none; width: 100%; flex: 1; flex-direction: column; }
     #loader  { display: flex; }
   </style>
 </head>
 <body>
 
-  <img src="lg.png" alt="Logo" class="logo" />
-
   <div class="card">
+
+    <img src="lg.png" alt="Logo" class="logo" />
+
+    <div class="card-top">
+      <span class="app-title">PORTAL</span>
+      <span class="app-sub">Internal Access System &mdash; v2.1</span>
+    </div>
+
+    <hr class="divider" />
 
     <div class="loading-wrap" id="loader">
       <img src="lc.png" alt="Loading" class="spinner" />
@@ -93,10 +197,46 @@
     </div>
 
     <div id="content">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:18px;">
-        <button class="btn" onclick="go('https://TRAINING_URL_HERE')">Training</button>
-        <button class="btn" onclick="go('https://TEST_SIGN_IN_URL_HERE')">Test Sign In</button>
+
+      <div class="card-middle">
+        <span class="desc-title">Welcome</span>
+        <p class="desc-body">
+          Select an option below to proceed. Training is intended for new and
+          returning staff completing required coursework. Test Sign In is for
+          authorized personnel verifying access credentials only.
+        </p>
+
+        <div class="btn-group">
+          <div>
+            <button class="btn" onclick="go('https://TRAINING_URL_HERE')">Training</button>
+            <p class="btn-note">* For enrolled staff &amp; new users</p>
+          </div>
+          <div>
+            <button class="btn" onclick="go('https://TEST_SIGN_IN_URL_HERE')">Test Sign In</button>
+            <p class="btn-note">* Authorized personnel only</p>
+          </div>
+        </div>
       </div>
+
+      <div class="instructions">
+        <p>
+          <span>* You must have a valid account to proceed through either option.</span>
+          <span>* Unauthorized access attempts are logged and may be reported.</span>
+          <span>* Contact your system administrator if you are unable to sign in.</span>
+        </p>
+      </div>
+
+      <div class="card-bottom">
+        <div class="copy">
+          &copy; 2024 Your Organization, Inc. All rights reserved.<br />
+          Unauthorized use of this system is strictly prohibited.
+        </div>
+        <div class="legal">
+          &trade; Portal is a trademark of Your Organization, Inc.<br />
+          Use subject to Terms of Service &amp; Acceptable Use Policy.
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -106,17 +246,16 @@
       window.location.href = url;
     }
 
-    // Simulate a brief load, then do the "flash" refresh effect
     window.addEventListener('load', function () {
       setTimeout(function () {
-        // Trigger the barely-noticeable top-to-bottom repaint flash
         document.body.style.display = 'none';
-        // Force reflow
         void document.body.offsetHeight;
         document.body.style.display = '';
 
-        document.getElementById('loader').style.display  = 'none';
-        document.getElementById('content').style.display = 'block';
+        document.getElementById('loader').style.display = 'none';
+        var c = document.getElementById('content');
+        c.style.display = 'flex';
+        c.style.flexDirection = 'column';
       }, 1200);
     });
   </script>
