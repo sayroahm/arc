@@ -257,6 +257,29 @@
 
     .btn-note { font-size: 10px; color: #777; text-align: center; margin-top: 3px; }
 
+    .conduct-box {
+      border: 1px solid #aaa;
+      margin: 0 24px 14px 24px;
+      padding: 12px 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .conduct-title {
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #444;
+      margin-bottom: 7px;
+    }
+
+    .conduct-body {
+      font-size: 9.5px;
+      color: #555;
+      line-height: 1.75;
+    }
+
     .instructions {
       border-top: 1px solid #bbb;
       margin: 0 24px 14px 24px;
@@ -314,7 +337,7 @@
       display: none;
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.72);
+      background: #e8e4c8;
       z-index: 10;
     }
 
@@ -485,6 +508,15 @@
         </div>
       </div>
 
+      <div class="conduct-box">
+        <div class="conduct-title">Code of Conduct</div>
+        <p class="conduct-body">
+          By accessing or using this secure testing environment, you acknowledge and agree to comply with all applicable testing security policies and federal law.<br /><br />
+          All assessment content within ARC Base is strictly confidential and protected under the Copyright Act of 1976 (Title 17 of the United States Code). Unauthorized reproduction, capture, distribution, transmission, or disclosure of any testing materials&mdash;by any means, including but not limited to copying, photographing, recording, or sharing&mdash;is strictly prohibited.<br /><br />
+          Any violation of these terms may result in immediate removal from the testing environment, compromise and invalidation of your test, and referral for disciplinary action. Violations may also subject individuals to civil penalties, including statutory damages that may range from $750 to $30,000 per work infringed, as well as additional legal consequences under applicable law.
+        </p>
+      </div>
+
       <div class="instructions">
         <p>
           <span>* You must have a valid account to proceed through either option.</span>
@@ -533,15 +565,19 @@
   </div>
 
   <script>
-    var _pendingExit  = false;
-    var _kioskActive  = false;
-    var _onPenalty    = false;
-    var _penaltyTimer = null;
-    var _penaltySecs  = 20 * 60;
+    var _pendingExit     = false;
+    var _kioskActive     = false;
+    var _onPenalty       = false;
+    var _penaltyInterval = null;
 
     var ADMIN_CODE = 'admin';
+    var LS_KEY     = 'arcbase_penalty_end';
 
     function go(url) { window.location.href = url; }
+
+    function lsSave(ts)  { try { localStorage.setItem(LS_KEY, String(ts)); } catch(e) {} }
+    function lsClear()   { try { localStorage.removeItem(LS_KEY); } catch(e) {} }
+    function lsLoad()    { try { var v = localStorage.getItem(LS_KEY); return v ? parseInt(v, 10) : null; } catch(e) { return null; } }
 
     function showPopup() {
       if (_onPenalty) return;
@@ -562,57 +598,61 @@
       _pendingExit = true;
       document.getElementById('overlay').classList.remove('active');
       document.getElementById('content-mask').style.display = 'none';
-      startPenalty();
+      var endTs = Date.now() + 20 * 60 * 1000;
+      lsSave(endTs);
+      startPenalty(endTs);
     }
 
-    function startPenalty() {
+    function startPenalty(endTs) {
       _onPenalty = true;
-      _penaltySecs = 20 * 60;
 
       document.getElementById('content').style.display = 'none';
       document.getElementById('loader').style.display  = 'none';
 
       var ps = document.getElementById('penalty-screen');
-      ps.style.display      = 'flex';
+      ps.style.display       = 'flex';
       ps.style.flexDirection = 'column';
 
-      document.getElementById('penalty-code-input').value = '';
+      document.getElementById('penalty-code-input').value       = '';
       document.getElementById('penalty-code-error').textContent = '';
 
-      updateTimerDisplay();
+      if (_penaltyInterval) clearInterval(_penaltyInterval);
 
-      _penaltyTimer = setInterval(function() {
-        _penaltySecs--;
-        updateTimerDisplay();
-        if (_penaltySecs <= 0) {
-          clearInterval(_penaltyTimer);
+      function tick() {
+        var remaining = Math.max(0, Math.floor((endTs - Date.now()) / 1000));
+        var m = Math.floor(remaining / 60);
+        var s = remaining % 60;
+        document.getElementById('penalty-timer').textContent =
+          (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        if (remaining <= 0) {
+          clearInterval(_penaltyInterval);
+          _penaltyInterval = null;
+          lsClear();
           endPenalty();
         }
-      }, 1000);
-    }
+      }
 
-    function updateTimerDisplay() {
-      var m = Math.floor(_penaltySecs / 60);
-      var s = _penaltySecs % 60;
-      document.getElementById('penalty-timer').textContent =
-        (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      tick();
+      _penaltyInterval = setInterval(tick, 500);
     }
 
     function endPenalty() {
-      _onPenalty    = false;
-      _pendingExit  = false;
+      _onPenalty   = false;
+      _pendingExit = false;
+      lsClear();
+
+      if (_penaltyInterval) { clearInterval(_penaltyInterval); _penaltyInterval = null; }
 
       document.getElementById('penalty-screen').style.display = 'none';
 
       var c = document.getElementById('content');
-      c.style.display      = 'flex';
+      c.style.display       = 'flex';
       c.style.flexDirection = 'column';
     }
 
     function submitCode() {
       var val = document.getElementById('penalty-code-input').value;
       if (val === ADMIN_CODE) {
-        clearInterval(_penaltyTimer);
         endPenalty();
       } else {
         var err = document.getElementById('penalty-code-error');
@@ -630,11 +670,6 @@
       var el = document.documentElement;
       var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
       if (fn) { try { fn.call(el); } catch(err) {} }
-    }
-
-    function exitFS() {
-      var fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-      if (fn) { try { fn.call(document); } catch(err) {} }
     }
 
     function isFS() {
@@ -665,9 +700,7 @@
         if (e.shiftKey && /^[iIjJcCkK]$/.test(k)) { e.preventDefault(); return; }
       }
 
-      if (['F1','F3','F5','F6','F7','F10','F11'].indexOf(k) !== -1) {
-        e.preventDefault(); return;
-      }
+      if (['F1','F3','F5','F6','F7','F10','F11'].indexOf(k) !== -1) { e.preventDefault(); return; }
 
       if (e.altKey && (k === 'F4' || k === 'Tab')) { e.preventDefault(); return; }
 
@@ -686,16 +719,26 @@
     document.addEventListener('dragstart',   function(e) { e.preventDefault(); });
 
     function enterKiosk() {
-      requestFS();
       _kioskActive = true;
       document.getElementById('entry-gate').style.display = 'none';
+
+      var savedEnd = lsLoad();
+      if (savedEnd && savedEnd > Date.now()) {
+        requestFS();
+        document.getElementById('loader').style.display = 'none';
+        startPenalty(savedEnd);
+        return;
+      }
+
+      lsClear();
+      requestFS();
 
       setTimeout(function() {
         document.getElementById('loader').style.display = 'none';
         var c = document.getElementById('content');
-        c.style.display      = 'flex';
+        c.style.display       = 'flex';
         c.style.flexDirection = 'column';
-      }, 5600);
+      }, 1200);
     }
   </script>
 
