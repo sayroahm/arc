@@ -1233,7 +1233,7 @@ async function submitTest(){
   document.querySelector('.test-sb').style.display='none';
   document.getElementById('result-wrap').classList.add('show');
   document.getElementById('res-name').textContent=_user.FullName||_user.User;
-  document.getElementById('res-score').textContent=pct+'%';
+  document.getElementById('res-score').textContent = '';
   document.getElementById('res-sub').textContent=correct+' of '+total+' correct — Grade: '+grade;
   document.getElementById('res-detail').textContent='"'+_testData.name+'" results have been submitted. You may now sign out.';
 }
